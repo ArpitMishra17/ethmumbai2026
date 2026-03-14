@@ -49,6 +49,8 @@ export async function reportEvidence(
       userId:      config.userId,
       orgId,
       fileverseUrl: config.fileverseUrl,
+      platformUrl: config.platformUrl,
+      token: config.token,
     };
 
     try {
@@ -58,6 +60,9 @@ export async function reportEvidence(
         logger.success(
           `  Uploaded: ${result.sessionId.slice(0, 12)}... (hash: ${result.contentHash.slice(0, 12)}...)`,
         );
+        if (result.txHash) {
+          logger.detail('  Base Tx:', result.txHash);
+        }
         uploadedCount++;
       } else {
         logger.warn(`  Upload failed for ${fileName}: ${result.error}`);

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -73,4 +73,14 @@ model SiweNonce {
   expiresAt  DateTime
   consumedAt DateTime?
   createdAt  DateTime  @default(now())
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  sessionId      String   @unique
+  sessionHash    String
+  fileverseRowId String?
+  baseTxHash     String?
+  anchoredAt     DateTime?
+  createdAt      DateTime @default(now())
 }

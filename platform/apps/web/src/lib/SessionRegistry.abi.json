@@ -1,0 +1,125 @@
+[
+  {
+    "type": "function",
+    "name": "computeLookupKey",
+    "inputs": [
+      {
+        "name": "sessionId",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "agentEns",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "userId",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "anchor",
+    "inputs": [
+      {
+        "name": "sessionHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "sessionId",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "agentEns",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "userId",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getSessionHash",
+    "inputs": [
+      {
+        "name": "sessionId",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "agentEns",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "userId",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "SessionAnchored",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "sessionHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "sessionId",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "agentEns",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "userId",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ]
+  }
+]
