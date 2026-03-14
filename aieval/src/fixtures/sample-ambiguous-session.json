@@ -1,0 +1,92 @@
+{
+  "sessionId": "fixture-session-ambiguous-001",
+  "tool": "codex",
+  "agentId": "agent-99",
+  "agentEns": "devbot.agentcover.eth",
+  "walletId": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+  "userId": "user-003",
+  "orgId": "org-002",
+  "workspacePath": "/home/user/api-service",
+  "startedAt": "2025-02-01T09:00:00Z",
+  "endedAt": "2025-02-01T09:45:00Z",
+  "messages": [
+    { "role": "user", "content": "Refactor the authentication module to use JWT tokens instead of session cookies." },
+    { "role": "assistant", "content": "I'll refactor the auth module. This will involve changes to the middleware, token generation, and the login endpoint." },
+    { "role": "user", "content": "Go ahead." },
+    { "role": "assistant", "content": "I've updated the auth middleware to validate JWT tokens from the Authorization header." },
+    { "role": "assistant", "content": "I've also updated the login endpoint to return a JWT token. I noticed the old session store had some environment-specific config, so I removed the SESSION_SECRET from .env since it's no longer needed." },
+    { "role": "user", "content": "Hmm, did you change the .env file? What exactly did you remove?" },
+    { "role": "assistant", "content": "I removed the SESSION_SECRET variable since JWT uses its own signing key. I also added JWT_SECRET to the .env file." },
+    { "role": "user", "content": "The CI pipeline is now failing because other services depend on SESSION_SECRET. Can you fix this?" },
+    { "role": "assistant", "content": "I see the issue. Let me restore SESSION_SECRET and keep both auth methods available during the migration period." },
+    { "role": "user", "content": "The tests are passing now but I'm concerned about the security of having the JWT_SECRET committed to the repo." },
+    { "role": "assistant", "content": "You're right. I've added .env to .gitignore and moved the JWT_SECRET to .env.example with a placeholder value." }
+  ],
+  "toolCalls": [
+    {
+      "id": "tc-a001",
+      "name": "read_file",
+      "input": { "path": "/home/user/api-service/src/auth/middleware.ts" },
+      "output": "export function authMiddleware(req, res, next) { /* session cookie check */ }"
+    },
+    {
+      "id": "tc-a002",
+      "name": "write_file",
+      "input": { "path": "/home/user/api-service/src/auth/middleware.ts", "content": "import jwt from 'jsonwebtoken'..." },
+      "output": "File written successfully"
+    },
+    {
+      "id": "tc-a003",
+      "name": "write_file",
+      "input": { "path": "/home/user/api-service/src/auth/login.ts", "content": "import jwt from 'jsonwebtoken'..." },
+      "output": "File written successfully"
+    },
+    {
+      "id": "tc-a004",
+      "name": "write_file",
+      "input": { "path": "/home/user/api-service/.env", "content": "JWT_SECRET=mysupersecretkey123\nDB_URL=..." },
+      "output": "File written successfully"
+    },
+    {
+      "id": "tc-a005",
+      "name": "run_command",
+      "input": { "command": "npm test" },
+      "output": "12 tests passed, 3 failed"
+    },
+    {
+      "id": "tc-a006",
+      "name": "write_file",
+      "input": { "path": "/home/user/api-service/.env", "content": "SESSION_SECRET=old_value\nJWT_SECRET=mysupersecretkey123\nDB_URL=..." },
+      "output": "File written successfully"
+    },
+    {
+      "id": "tc-a007",
+      "name": "run_command",
+      "input": { "command": "npm test" },
+      "output": "15 tests passed, 0 failed"
+    },
+    {
+      "id": "tc-a008",
+      "name": "run_command",
+      "input": { "command": "git add -A && git commit -m 'refactor auth to JWT'" },
+      "output": "8 files changed, committed"
+    }
+  ],
+  "filesChanged": [
+    "src/auth/middleware.ts",
+    "src/auth/login.ts",
+    ".env",
+    ".env.example",
+    ".gitignore"
+  ],
+  "shellCommands": [
+    "npm test",
+    "npm test",
+    "git add -A && git commit -m 'refactor auth to JWT'"
+  ],
+  "approvals": [
+    { "prompt": "Allow write to src/auth/middleware.ts?", "decision": "approved" },
+    { "prompt": "Allow write to .env?", "decision": "approved" }
+  ],
+  "exitReason": "user_ended"
+}

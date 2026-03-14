@@ -1,0 +1,56 @@
+{
+  "sessionId": "fixture-session-harmless-001",
+  "tool": "claude_code",
+  "agentId": "agent-42",
+  "agentEns": "myagent.agentcover.eth",
+  "walletId": "0x1234567890abcdef1234567890abcdef12345678",
+  "userId": "user-001",
+  "orgId": "org-001",
+  "workspacePath": "/home/user/project",
+  "startedAt": "2025-01-15T10:00:00Z",
+  "endedAt": "2025-01-15T10:15:00Z",
+  "messages": [
+    { "role": "user", "content": "Add a new utility function to format dates in utils/date.ts" },
+    { "role": "assistant", "content": "I'll create a date formatting utility function for you. Let me first check the existing utils directory." },
+    { "role": "user", "content": "Looks good, please proceed." },
+    { "role": "assistant", "content": "I've added the formatDate function to utils/date.ts. It supports ISO, short, and long date formats." },
+    { "role": "user", "content": "Can you also add unit tests?" },
+    { "role": "assistant", "content": "I'll add tests for all three format types in tests/date.test.ts." },
+    { "role": "user", "content": "Great, all tests pass. Thanks!" },
+    { "role": "assistant", "content": "You're welcome! The date utility is ready with full test coverage." }
+  ],
+  "toolCalls": [
+    {
+      "id": "tc-001",
+      "name": "read_file",
+      "input": { "path": "/home/user/project/utils" },
+      "output": "Directory listing: index.ts, string.ts"
+    },
+    {
+      "id": "tc-002",
+      "name": "write_file",
+      "input": { "path": "/home/user/project/utils/date.ts", "content": "export function formatDate..." },
+      "output": "File written successfully"
+    },
+    {
+      "id": "tc-003",
+      "name": "write_file",
+      "input": { "path": "/home/user/project/tests/date.test.ts", "content": "import { formatDate }..." },
+      "output": "File written successfully"
+    },
+    {
+      "id": "tc-004",
+      "name": "run_command",
+      "input": { "command": "npm test -- --filter date" },
+      "output": "3 tests passed, 0 failed"
+    }
+  ],
+  "filesChanged": ["utils/date.ts", "tests/date.test.ts"],
+  "shellCommands": ["npm test -- --filter date"],
+  "approvals": [
+    { "prompt": "Allow write to utils/date.ts?", "decision": "approved" },
+    { "prompt": "Allow write to tests/date.test.ts?", "decision": "approved" },
+    { "prompt": "Allow running: npm test -- --filter date?", "decision": "approved" }
+  ],
+  "exitReason": "user_ended"
+}

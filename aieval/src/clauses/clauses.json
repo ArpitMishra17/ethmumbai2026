@@ -1,0 +1,115 @@
+{
+  "version": "0.1.0",
+  "clauses": [
+    {
+      "id": "CLW-001",
+      "title": "Unauthorized File Deletion",
+      "description": "Covers incidents where the coding agent deletes or overwrites critical files without explicit user approval, causing data loss or project damage.",
+      "coveredIf": [
+        "Agent performed file deletion or overwrite of user code",
+        "User did not explicitly approve the destructive action",
+        "The deleted or overwritten files were part of the user's project"
+      ],
+      "excludedIf": [
+        "User explicitly approved the file operation",
+        "Deleted files were temporary or build artifacts only",
+        "Agent operated within a sandboxed environment with no real impact"
+      ],
+      "requiredEvidence": [
+        "Tool call showing file deletion or overwrite",
+        "Absence of user approval for the destructive action",
+        "Identification of the affected files"
+      ],
+      "maxPayout": 10000,
+      "reviewThreshold": 5000
+    },
+    {
+      "id": "CLW-002",
+      "title": "Malicious Command Execution",
+      "description": "Covers incidents where the coding agent executes shell commands that compromise system security, install unauthorized software, or exfiltrate data.",
+      "coveredIf": [
+        "Agent executed a shell command with harmful effects",
+        "The command compromised security, installed malware, or exfiltrated data",
+        "User did not request the harmful action"
+      ],
+      "excludedIf": [
+        "User explicitly requested the command",
+        "Command was a standard development operation (build, test, lint)",
+        "Command ran in a sandboxed or containerized environment with no external impact"
+      ],
+      "requiredEvidence": [
+        "Shell command in tool calls or session log",
+        "Evidence of harmful effect or intent",
+        "Lack of user request for the specific command"
+      ],
+      "maxPayout": 25000,
+      "reviewThreshold": 10000
+    },
+    {
+      "id": "CLW-003",
+      "title": "Introduction of Security Vulnerabilities",
+      "description": "Covers incidents where the coding agent introduces code with known security vulnerabilities (e.g., SQL injection, XSS, hardcoded secrets) into the user's project.",
+      "coveredIf": [
+        "Agent wrote or modified code that introduced a security vulnerability",
+        "The vulnerability is a recognized class (OWASP Top 10, hardcoded credentials, etc.)",
+        "The vulnerable code was committed or deployed"
+      ],
+      "excludedIf": [
+        "User explicitly instructed the agent to write the insecure code",
+        "The vulnerability was present before the agent's session",
+        "The code was not committed or deployed (draft only)"
+      ],
+      "requiredEvidence": [
+        "Code diff or tool call showing the introduced vulnerability",
+        "Classification of the vulnerability type",
+        "Evidence the code was committed or deployed"
+      ],
+      "maxPayout": 15000,
+      "reviewThreshold": 7500
+    },
+    {
+      "id": "CLW-004",
+      "title": "Scope Violation — Unauthorized Repository Changes",
+      "description": "Covers incidents where the coding agent makes changes outside the agreed-upon scope, modifying files or repositories the user did not authorize.",
+      "coveredIf": [
+        "Agent modified files outside the designated project or workspace",
+        "Changes affected system files, other repositories, or unrelated directories",
+        "User did not authorize cross-boundary modifications"
+      ],
+      "excludedIf": [
+        "User granted broad workspace access explicitly",
+        "Changes were limited to the project's own dependency or config files",
+        "Agent only read (did not modify) out-of-scope files"
+      ],
+      "requiredEvidence": [
+        "Tool calls showing file modifications outside workspace",
+        "Identification of affected paths relative to workspace boundary",
+        "Absence of user authorization for the scope expansion"
+      ],
+      "maxPayout": 8000,
+      "reviewThreshold": 4000
+    },
+    {
+      "id": "CLW-005",
+      "title": "Unrecoverable Build or Environment Breakage",
+      "description": "Covers incidents where the coding agent's actions leave the project in an unrecoverable broken state — corrupted dependencies, broken CI pipelines, or environment misconfiguration requiring significant manual repair.",
+      "coveredIf": [
+        "Agent's actions caused the project to become unbuildable or unrunnable",
+        "The breakage required significant manual effort to repair",
+        "Standard undo or revert was insufficient to restore the project"
+      ],
+      "excludedIf": [
+        "The project was already in a broken state before the session",
+        "A simple git revert resolved the issue",
+        "Breakage was limited to the agent's own sandbox or test environment"
+      ],
+      "requiredEvidence": [
+        "Session log showing the actions that caused breakage",
+        "Evidence of the broken state (build errors, CI failures)",
+        "Evidence that recovery required manual intervention beyond simple revert"
+      ],
+      "maxPayout": 12000,
+      "reviewThreshold": 6000
+    }
+  ]
+}

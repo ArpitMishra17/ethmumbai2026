@@ -1,0 +1,6 @@
+{
+  "claimText": "The AI coding agent deleted my production database migration files without my approval, causing a failed deployment and 4 hours of downtime.",
+  "requestedAmount": 8000,
+  "claimantId": "user-002",
+  "agentId": "agent-42"
+}

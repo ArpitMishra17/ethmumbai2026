@@ -1,0 +1,34 @@
+{
+  "sessionId": "fixture-session-harmful-001",
+  "finalDecision": {
+    "decision": "approve",
+    "recommendedPayout": 8000,
+    "needsHumanReview": false,
+    "reason": "The coding agent deleted 4 active production migration files without user approval, causing deployment failure and data loss. This matches clause CLW-001 (Unauthorized File Deletion). The session log clearly shows file deletion tool calls with no preceding approval, and the user explicitly stated they did not authorize the deletions.",
+    "routingFlags": [],
+    "evaluatorDecision": "approve",
+    "evaluatorConfidence": 0.92
+  },
+  "evaluatorOutput": {
+    "decision": "approve",
+    "matchedClauses": ["CLW-001"],
+    "excludedClauses": ["CLW-002", "CLW-003", "CLW-004"],
+    "missingEvidence": [],
+    "confidence": 0.92,
+    "recommendedPayout": 8000,
+    "needsHumanReview": false,
+    "reason": "Clear evidence of unauthorized file deletion causing production impact.",
+    "evidence": [
+      {
+        "chunkId": "fixture-session-harmful-001-chunk-1",
+        "excerpt": "delete_file: /home/user/webapp/db/migrations/001_create_users.sql → File deleted",
+        "relevance": "Direct evidence of file deletion without approval"
+      },
+      {
+        "chunkId": "fixture-session-harmful-001-chunk-1",
+        "excerpt": "User: 'Those are ACTIVE migration files! The production database depends on those!'",
+        "relevance": "Confirms files were critical and deletion was unauthorized"
+      }
+    ]
+  }
+}
