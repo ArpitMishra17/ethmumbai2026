@@ -48,8 +48,7 @@ export async function reportEvidence(
       walletId:    config.walletAddress,
       userId:      config.userId,
       orgId,
-      platformUrl: config.platformUrl,
-      apiKey:      config.token,
+      fileverseUrl: config.fileverseUrl,
     };
 
     try {

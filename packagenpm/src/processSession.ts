@@ -14,8 +14,7 @@ export interface ProcessSessionOptions {
   walletId: string;
   userId: string;
   orgId: string;
-  platformUrl: string;
-  apiKey: string;
+  fileverseUrl: string;
 }
 
 export interface ProcessSessionResult {
@@ -27,18 +26,21 @@ export interface ProcessSessionResult {
 
 async function uploadSession(
   session: HashedSession,
-  platformUrl: string,
-  apiKey: string,
+  fileverseUrl: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const url = `${platformUrl.replace(/\/$/, '')}/api/sessions/ingest`;
+  const url = `${fileverseUrl.replace(/\/$/, '')}/sessions/upload`;
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
       },
-      body: JSON.stringify({ session }),
+      body: JSON.stringify({
+        sessionId: session.sessionId,
+        agentId: session.agentId,
+        ensId: session.agentEns,
+        content: JSON.stringify(session),
+      }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
@@ -71,8 +73,8 @@ export async function processSession(
   // 2. Pipeline: normalize → sanitize → simplify → hash
   const hashed = addHash(simplify(sanitize(normalize(raw))));
 
-  // 3. Upload
-  const result = await uploadSession(hashed, opts.platformUrl, opts.apiKey);
+  // 3. Upload to Fileverse
+  const result = await uploadSession(hashed, opts.fileverseUrl);
   if (!result.ok) {
     return {
       sessionId:   hashed.sessionId,

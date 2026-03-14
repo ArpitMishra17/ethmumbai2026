@@ -16,6 +16,9 @@ export interface AgentCoverConfig {
   token: string;
   platformUrl: string;
 
+  // Fileverse backend URL for evidence storage
+  fileverseUrl: string;
+
   // User identity
   userId: string;
   walletAddress: string;
@@ -26,6 +29,8 @@ export interface AgentCoverConfig {
     codex?: AgentInfo;
   };
 }
+
+export const DEFAULT_FILEVERSE_URL = process.env.AGENTCOVER_FILEVERSE_URL || 'http://localhost:8000';
 
 // ─── Paths ──────────────────────────────────────────────────────────
 

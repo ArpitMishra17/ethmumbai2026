@@ -8,6 +8,7 @@ import {
   getMappedAgent,
   AgentCoverConfig,
   AgentInfo,
+  DEFAULT_FILEVERSE_URL,
 } from './config';
 import { validateToken, fetchAgents, openBrowser, PlatformAgent } from './auth';
 import { getAdapter } from './adapters';
@@ -48,6 +49,12 @@ async function handleLogin(): Promise<void> {
     `  Platform URL (${DEFAULT_PLATFORM_URL}): `
   );
   const url = platformUrl || DEFAULT_PLATFORM_URL;
+
+  // 1b. Get Fileverse backend URL
+  const fileverseInput = await prompt(
+    `  Fileverse URL (${DEFAULT_FILEVERSE_URL}): `
+  );
+  const fileverseUrl = fileverseInput || DEFAULT_FILEVERSE_URL;
 
   // 2. Open browser
   logger.info('Opening platform in your browser...');
@@ -93,6 +100,7 @@ async function handleLogin(): Promise<void> {
     saveConfig({
       token,
       platformUrl: url,
+      fileverseUrl,
       userId: user.userId,
       walletAddress: user.address,
       agentMap: {},
@@ -152,6 +160,7 @@ async function handleLogin(): Promise<void> {
   const config: AgentCoverConfig = {
     token,
     platformUrl: url,
+    fileverseUrl,
     userId: user.userId,
     walletAddress: user.address,
     agentMap,
