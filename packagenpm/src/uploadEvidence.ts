@@ -1,127 +1,86 @@
 import * as path from 'path';
 import { AgentCoverConfig, AgentInfo } from './config';
 import { logger } from './utils/logger';
-import { getFileSize, formatFileSize } from './utils/fsUtils';
+import { processSession, ProcessSessionOptions } from './processSession';
 
 /**
- * Evidence upload payload — what will eventually be sent to the backend.
- */
-export interface EvidencePayload {
-  agentEns: string;
-  agentId: number;
-  userWallet: string;
-  toolType: string;
-  sessionFiles: {
-    fileName: string;
-    fileSize: number;
-    lineCount: number;
-  }[];
-  workspacePath: string;
-  timestamp: number;
-}
-
-/**
- * Counts the number of lines in a file by reading it.
- */
-function countLines(filePath: string): number {
-  try {
-    const fs = require('fs');
-    const content = fs.readFileSync(filePath, 'utf-8');
-    return content.split('\n').filter((l: string) => l.trim().length > 0).length;
-  } catch {
-    return 0;
-  }
-}
-
-/**
- * Reports evidence as ready for upload.
- * Prints the full payload that would be sent to the backend.
+ * Processes and uploads all new session files to the AgentCover backend.
+ *
+ * For each session:
+ *   1. Parse JSONL → normalize → sanitize (strip secrets) → simplify → hash
+ *   2. POST HashedSession to /api/sessions/ingest
+ *   3. Print per-session status
  */
 export async function reportEvidence(
   config: AgentCoverConfig,
   agent: AgentInfo,
   toolType: string,
   newSessions: string[],
-  workspacePath: string
+  workspacePath: string,
 ): Promise<void> {
-  const timestamp = Date.now();
-
-  // Build session file details
-  const sessionFiles = newSessions.map((filePath) => {
-    const size = getFileSize(filePath);
-    const lines = countLines(filePath);
-    return {
-      fileName: path.basename(filePath),
-      fileSize: size,
-      lineCount: lines,
-      fullPath: filePath,
-    };
-  });
-
-  // Build payload
-  const payload: EvidencePayload = {
-    agentEns: agent.ensName,
-    agentId: agent.agentId,
-    userWallet: config.walletAddress,
-    toolType,
-    sessionFiles: sessionFiles.map(({ fileName, fileSize, lineCount }) => ({
-      fileName,
-      fileSize,
-      lineCount,
-    })),
-    workspacePath,
-    timestamp,
-  };
-
-  // ─── Print Summary ────────────────────────────────────────────
-
   logger.blank();
-  logger.banner('📋 Evidence Summary — Ready to Upload');
+  logger.banner('AgentCover — Processing Evidence');
   logger.blank();
 
-  // Identity
-  console.log('  IDENTITY');
   logger.detail('Agent ENS:', agent.ensName);
   logger.detail('Agent ID:', String(agent.agentId));
   logger.detail('User Wallet:', config.walletAddress);
-  logger.detail('User ID:', config.userId);
-  logger.blank();
-
-  // Session
-  console.log('  SESSION');
   logger.detail('Tool:', toolType);
   logger.detail('Workspace:', workspacePath);
-  logger.detail('Timestamp:', new Date(timestamp).toISOString());
+  logger.detail('Sessions found:', String(newSessions.length));
   logger.blank();
 
-  // Log files
-  console.log('  LOG FILES');
-  for (let i = 0; i < sessionFiles.length; i++) {
-    const f = sessionFiles[i];
-    console.log(`  ┌${'─'.repeat(48)}┐`);
-    console.log(`  │ ${(i + 1 + '. ' + f.fileName).padEnd(47)}│`);
-    console.log(`  │ ${'Size:  '.padEnd(10)}${formatFileSize(f.fileSize).padEnd(37)}│`);
-    console.log(`  │ ${'Lines: '.padEnd(10)}${String(f.lineCount).padEnd(37)}│`);
-    console.log(`  │ ${'Path:  '.padEnd(10)}${f.fullPath.substring(0, 37).padEnd(37)}│`);
-    console.log(`  └${'─'.repeat(48)}┘`);
+  // orgId = walletAddress for solo users
+  const orgId = config.walletAddress;
+
+  let uploadedCount = 0;
+  let failedCount = 0;
+
+  for (const filePath of newSessions) {
+    const fileName = path.basename(filePath);
+    logger.info(`Processing ${fileName}...`);
+
+    const opts: ProcessSessionOptions = {
+      logFilePath: filePath,
+      toolType:    toolType as 'claude_code' | 'codex',
+      agentId:     String(agent.agentId),
+      agentEns:    agent.ensName,
+      walletId:    config.walletAddress,
+      userId:      config.userId,
+      orgId,
+      platformUrl: config.platformUrl,
+      apiKey:      config.token,
+    };
+
+    try {
+      const result = await processSession(opts);
+
+      if (result.uploaded) {
+        logger.success(
+          `  Uploaded: ${result.sessionId.slice(0, 12)}... (hash: ${result.contentHash.slice(0, 12)}...)`,
+        );
+        uploadedCount++;
+      } else {
+        logger.warn(`  Upload failed for ${fileName}: ${result.error}`);
+        logger.info('  Session was processed locally but not recorded on-chain.');
+        failedCount++;
+      }
+    } catch (err) {
+      logger.error(`  Failed to process ${fileName}: ${(err as Error).message}`);
+      failedCount++;
+      // Continue to next session — do not abort
+    }
   }
+
   logger.blank();
 
-  // Payload preview
-  console.log('  UPLOAD PAYLOAD (will be sent to backend)');
-  console.log(JSON.stringify(payload, null, 2).split('\n').map(l => '  ' + l).join('\n'));
-  logger.blank();
-
-  logger.success('Evidence is ready for upload');
-  logger.info('Upload to backend will be enabled in a future version.');
-
-  // ─── TODO: Actual upload ──────────────────────────────────────
-  //
-  // When backend is ready, POST each session to:
-  //   ${config.platformUrl}/api/evidence/upload
-  //
-  // Include config.token as Authorization: Bearer header.
-  // Include raw sessionFileContent in the payload.
-  // Retry 3x with exponential backoff.
-  // ──────────────────────────────────────────────────────────────
+  if (uploadedCount > 0) {
+    logger.success(`${uploadedCount} session(s) uploaded and anchored on-chain.`);
+  }
+  if (failedCount > 0) {
+    logger.warn(`${failedCount} session(s) failed to upload. Check your connection and API key.`);
+  }
+  if (uploadedCount === 0 && failedCount === 0) {
+    logger.info('No sessions processed.');
+  }
 }
