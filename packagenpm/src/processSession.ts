@@ -38,35 +38,26 @@ async function uploadSession(
   const url = `${platformUrl.replace(/\/$/, '')}/api/sessions/ingest`;
 >>>>>>> parent of 36fb291 (payload updated)
 =======
-  platformUrl: string,
+  fileverseUrl: string,
   apiKey: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const url = `${platformUrl.replace(/\/$/, '')}/api/sessions/ingest`;
 >>>>>>> parent of 36fb291 (payload updated)
+=======
+  fileverseUrl: string,
+  apiKey: string,
+  agentId: string,
+  ensId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const url = `${platformUrl.replace(/\/$/, '')}/api/sessions/ingest`;
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-<<<<<<< HEAD
-<<<<<<< HEAD
-      },
-      body: JSON.stringify({
-        sessionId: session.sessionId,
-        agentId: session.agentId,
-        ensId: session.agentEns,
-        content: JSON.stringify(session),
-      }),
-=======
         'x-api-key': apiKey,
       },
       body: JSON.stringify({ session }),
->>>>>>> parent of 36fb291 (payload updated)
-=======
-        'x-api-key': apiKey,
-      },
-      body: JSON.stringify({ session }),
->>>>>>> parent of 36fb291 (payload updated)
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
@@ -99,18 +90,8 @@ export async function processSession(
   // 2. Pipeline: normalize → sanitize → simplify → hash
   const hashed = addHash(simplify(sanitize(normalize(raw))));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // 3. Upload to Fileverse
-  const result = await uploadSession(hashed, opts.fileverseUrl);
-=======
   // 3. Upload
   const result = await uploadSession(hashed, opts.platformUrl, opts.apiKey);
->>>>>>> parent of 36fb291 (payload updated)
-=======
-  // 3. Upload
-  const result = await uploadSession(hashed, opts.platformUrl, opts.apiKey);
->>>>>>> parent of 36fb291 (payload updated)
   if (!result.ok) {
     return {
       sessionId:   hashed.sessionId,
