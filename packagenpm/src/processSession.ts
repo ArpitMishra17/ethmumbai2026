@@ -27,18 +27,29 @@ export interface ProcessSessionResult {
 
 async function uploadSession(
   session: HashedSession,
-  platformUrl: string,
+  fileverseUrl: string,
   apiKey: string,
+  agentId: string,
+  ensId: string
 ): Promise<{ ok: boolean; error?: string }> {
-  const url = `${platformUrl.replace(/\/$/, '')}/api/sessions/ingest`;
+  // Use the Fileverse endpoint
+  const url = `${fileverseUrl.replace(/\/$/, '')}/sessions/upload`;
+  
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        // 'x-api-key': apiKey, // Keeping this in headers in case Fileverse adds auth later
       },
-      body: JSON.stringify({ session }),
+      body: JSON.stringify({
+        sessionId: session.sessionId,
+        agentId: agentId,
+        ensId: ensId,
+        // The Fileverse backend expects a 'content' string.
+        // We stringify the hashed session object into a formatted JSON string.
+        content: JSON.stringify(session, null, 2)
+      }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
@@ -71,8 +82,17 @@ export async function processSession(
   // 2. Pipeline: normalize → sanitize → simplify → hash
   const hashed = addHash(simplify(sanitize(normalize(raw))));
 
-  // 3. Upload
-  const result = await uploadSession(hashed, opts.platformUrl, opts.apiKey);
+  // 3. Upload to Fileverse (defaulting to localhost:3001 if not overridden)
+  // For the hackathon, we assume Fileverse is running natively on port 3001.
+  const fileverseUrl = process.env.FILEVERSE_URL || 'http://localhost:3001';
+
+  const result = await uploadSession(
+    hashed, 
+    fileverseUrl, 
+    opts.apiKey, 
+    opts.agentId, 
+    opts.agentEns
+  );
   if (!result.ok) {
     return {
       sessionId:   hashed.sessionId,
