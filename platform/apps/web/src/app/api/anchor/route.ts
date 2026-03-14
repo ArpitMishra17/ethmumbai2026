@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import * as fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db/prisma";
 import { publicClient, sessionRegistryAbi, sessionRegistryAddress, walletClient } from "@/lib/viemClient";
@@ -75,48 +76,48 @@ const sessionModel = (prisma as typeof prisma & {
 }).session;
 
 export async function POST(req: NextRequest) {
-  const cliToken = await authenticateCliToken(req);
-  if (!cliToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: AnchorRequestBody;
   try {
-    body = (await req.json()) as AnchorRequestBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+    const cliToken = await authenticateCliToken(req);
+    if (!cliToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const { sessionHash, sessionId, agentEns, userId, fileverseRowId } = body;
+    let body: AnchorRequestBody;
+    try {
+      body = (await req.json()) as AnchorRequestBody;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-  if (!sessionHash || !sessionId || !agentEns || !userId) {
-    return NextResponse.json(
-      { error: "sessionHash, sessionId, agentEns, and userId are required" },
-      { status: 400 }
-    );
-  }
+    const { sessionHash, sessionId, agentEns, userId, fileverseRowId } = body;
 
-  if (!isHexBytes32(sessionHash)) {
-    return NextResponse.json({ error: "sessionHash must be a bytes32 hex string" }, { status: 400 });
-  }
+    if (!sessionHash || !sessionId || !agentEns || !userId) {
+      return NextResponse.json(
+        { error: "sessionHash, sessionId, agentEns, and userId are required" },
+        { status: 400 }
+      );
+    }
 
-  const authenticatedWallet = cliToken.user.address as `0x${string}`;
-  if (isAddress(userId) && userId.toLowerCase() !== authenticatedWallet.toLowerCase()) {
-    return NextResponse.json(
-      { error: "userId does not match the authenticated CLI wallet" },
-      { status: 403 }
-    );
-  }
+    if (!isHexBytes32(sessionHash)) {
+      return NextResponse.json({ error: "sessionHash must be a bytes32 hex string" }, { status: 400 });
+    }
 
-  const existingSession = await sessionModel.findUnique({
-    where: { sessionId },
-  });
+    const authenticatedWallet = cliToken.user.address as `0x${string}`;
+    if (isAddress(userId) && userId.toLowerCase() !== authenticatedWallet.toLowerCase()) {
+      return NextResponse.json(
+        { error: "userId does not match the authenticated CLI wallet" },
+        { status: 403 }
+      );
+    }
 
-  if (existingSession?.baseTxHash) {
-    return NextResponse.json({ txHash: existingSession.baseTxHash });
-  }
+    const existingSession = await sessionModel.findUnique({
+      where: { sessionId },
+    });
 
-  try {
+    if (existingSession?.baseTxHash) {
+      return NextResponse.json({ txHash: existingSession.baseTxHash });
+    }
+
     const txHash = await walletClient.writeContract({
       address: sessionRegistryAddress,
       abi: sessionRegistryAbi,
@@ -149,6 +150,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ txHash });
   } catch (error) {
     console.error("Session anchor error:", error);
+    try {
+      fs.appendFileSync("c:/Ayan/Coding/Web Development/Project/ethmumbai/ethmumbai2026/anchor-error.log", String(error) + "\n" + JSON.stringify(error, Object.getOwnPropertyNames(error)) + "\n");
+    } catch (e) {}
     return NextResponse.json({ error: parseReason(error) }, { status: 500 });
   }
 }

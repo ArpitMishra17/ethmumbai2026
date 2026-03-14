@@ -148,18 +148,11 @@ export async function processSession(
 
   // 3. Upload to Fileverse
   const result = await uploadSession(hashed, opts.fileverseUrl);
-  if (!result.ok) {
-    return {
-      sessionId:   hashed.sessionId,
-      contentHash: hashed.contentHash,
-      uploaded:    false,
-      error:       result.error,
-    };
-  }
 
+  // 4. Anchor on Base chain (always do this, even if Fileverse fails)
   const anchorResult = await anchorSession(
     hashed,
-    result.fileverseRowId,
+    result.ok ? result.fileverseRowId : undefined,
     opts.platformUrl,
     opts.token,
   );
@@ -170,8 +163,15 @@ export async function processSession(
       contentHash: hashed.contentHash,
       uploaded: false,
       fileverseRowId: result.fileverseRowId,
-      error: `Fileverse upload succeeded, but Base anchoring failed: ${anchorResult.error}`,
+      error: `Base anchoring failed: ${anchorResult.error}${
+        !result.ok ? ` (Fileverse also failed: ${result.error})` : ''
+      }`,
     };
+  }
+
+  // If Fileverse failed but anchor succeeded, log the Fileverse failure but return success overall.
+  if (!result.ok) {
+    console.warn(`Fileverse upload failed, but anchored on-chain successfully: ${result.error}`);
   }
 
   return {

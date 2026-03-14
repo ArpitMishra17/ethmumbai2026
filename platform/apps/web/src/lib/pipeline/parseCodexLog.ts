@@ -1,10 +1,8 @@
-import { readFileSync } from 'fs';
-import * as path from 'path';
-import { createHash } from 'crypto';
-import type { NormalizedSession } from '../pipeline/types';
+import type { NormalizedSession } from './types';
 
 export interface CodexParseOptions {
-  logFilePath: string;
+  text: string;
+  fileName: string;
   agentId: string;
   agentEns: string;
   walletId: string;
@@ -12,21 +10,26 @@ export interface CodexParseOptions {
   orgId: string;
 }
 
-export function parseCodexLog(opts: CodexParseOptions): NormalizedSession {
-  const raw = readFileSync(opts.logFilePath, 'utf-8');
+async function sha256(message: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function parseCodexLogText(opts: CodexParseOptions): Promise<NormalizedSession> {
   const events: Record<string, unknown>[] = [];
-  for (const line of raw.split('\n').filter((l) => l.trim())) {
+  for (const line of opts.text.split('\n').filter((l) => l.trim())) {
     try { events.push(JSON.parse(line)); } catch { /* skip malformed lines */ }
   }
 
   if (events.length === 0) {
-    throw new Error(`No parseable events in ${opts.logFilePath}`);
+    throw new Error(`No parseable events in ${opts.fileName}`);
   }
 
   const first = events[0]!;
   const nativeId = String(first['sessionId'] ?? first['id'] ?? '');
-  const sessionId = nativeId
-    || createHash('sha256').update(path.basename(opts.logFilePath)).digest('hex').slice(0, 32);
+  const sessionId = nativeId || (await sha256(opts.fileName)).slice(0, 32);
 
   const startedAt = String(first['timestamp'] ?? new Date().toISOString());
   const endedAt = String(events.at(-1)?.['timestamp'] ?? new Date().toISOString());
@@ -47,7 +50,7 @@ export function parseCodexLog(opts: CodexParseOptions): NormalizedSession {
     walletId: opts.walletId,
     userId:   opts.userId,
     orgId:    opts.orgId,
-    workspacePath: path.basename(opts.logFilePath),
+    workspacePath: opts.fileName, // in-browser we don't have absolute paths
     startedAt,
     endedAt,
     messages,
