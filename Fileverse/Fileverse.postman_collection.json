@@ -1,0 +1,250 @@
+{
+  "info": {
+    "_postman_id": "fileverse-backend-collection",
+    "name": "Fileverse Backend",
+    "description": "REST API for Fileverse AI log insurance backend. Imports JSONL session logs, creates SHA-256 hash proofs, and uploads user insurance sheets to Fileverse as ddocs.\n\nSet the `baseUrl` variable to `http://localhost:8000` before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping",
+              "host": ["{{baseUrl}}"],
+              "path": ["ping"]
+            },
+            "description": "Health check. Returns `{reply: 'pong'}` when the server is up."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/ping" }
+              },
+              "body": "{\"reply\":\"pong\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Returns all user sheets stored locally in `data/user-sheets.json`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/users" }
+              },
+              "body": "{\"users\":[],\"total\":0}"
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/user1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "user1"]
+            },
+            "description": "Returns the insurance sheet for a specific user. Replace `user1` in the path with the userId you registered or imported."
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/users/unknownUser" }
+              },
+              "body": "{\"message\":\"User sheet not found\"}"
+            }
+          ]
+        },
+        {
+          "name": "Register User (template, no file)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"alice\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "register"]
+            },
+            "description": "Creates an empty template insurance sheet for a user and uploads it to Fileverse as a ddoc. No JSONL file needed.\n\n**Required body:** `userId` (string)"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"userId\":\"alice\"}"
+                },
+                "url": { "raw": "{{baseUrl}}/api/users/register" }
+              },
+              "body": "{\n  \"message\": \"User sheet created\",\n  \"data\": {\n    \"userId\": \"alice\",\n    \"ddocId\": \"<ddocId-from-fileverse>\",\n    \"sourceFilePath\": null,\n    \"sha256\": null,\n    \"sheet\": { \"...\" : \"...\" },\n    \"summary\": null,\n    \"updatedAt\": \"2026-03-13T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Import User Log (JSONL file)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user1\",\n  \"filePath\": \"13aa10e8-c390-4416-a253-a4b364fffb9a.jsonl\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "import"]
+            },
+            "description": "Reads a JSONL file, computes a SHA-256 hash, parses event stats, creates an insurance sheet, uploads it to Fileverse as a ddoc, and stores both the sheet and the hash proof locally.\n\n**Required body:**\n- `userId` (string) — identifier for this user\n- `filePath` (string) — relative (from workspace root) or absolute path to the `.jsonl` file\n\n**Default files in workspace:**\n- `13aa10e8-c390-4416-a253-a4b364fffb9a.jsonl`\n- `4fc4c066-819e-4d23-9e14-f8d2514def76.jsonl`"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"userId\":\"user1\",\"filePath\":\"13aa10e8-c390-4416-a253-a4b364fffb9a.jsonl\"}"
+                },
+                "url": { "raw": "{{baseUrl}}/api/users/import" }
+              },
+              "body": "{\n  \"message\": \"User log imported and uploaded to Fileverse\",\n  \"data\": {\n    \"userId\": \"user1\",\n    \"ddocId\": \"<ddocId-from-fileverse>\",\n    \"sourceFilePath\": \"C:\\\\...\\\\13aa10e8-c390-4416-a253-a4b364fffb9a.jsonl\",\n    \"sha256\": \"<sha256-hex>\",\n    \"sheet\": { \"...\" : \"...\" },\n    \"summary\": {\n      \"totalLines\": 100,\n      \"validJsonLines\": 98,\n      \"invalidLines\": 2,\n      \"eventTypes\": [\"user\", \"assistant\", \"tool_use\"]\n    },\n    \"updatedAt\": \"2026-03-13T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Proofs",
+      "item": [
+        {
+          "name": "List All Hash Proofs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proofs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "proofs"]
+            },
+            "description": "Returns all SHA-256 hash proof records stored in `data/hash-proofs.json`. Each record includes userId, filePath, sha256, ddocId, and timestamp."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/api/proofs" }
+              },
+              "body": "{\n  \"proofs\": [\n    {\n      \"userId\": \"user1\",\n      \"sourceFilePath\": \"C:\\\\...\\\\13aa10e8.jsonl\",\n      \"sha256\": \"<sha256-hex>\",\n      \"ddocId\": \"<ddocId>\",\n      \"createdAt\": \"2026-03-13T00:00:00.000Z\"\n    }\n  ],\n  \"total\": 1\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bootstrap",
+      "item": [
+        {
+          "name": "Import both default JSONL users",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bootstrap/import-default-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bootstrap", "import-default-users"]
+            },
+            "description": "One-shot bootstrap: imports both JSONL files from the workspace root as `user1` and `user2`. Runs the full pipeline for each: hash → parse → create Fileverse ddoc → persist locally.\n\nNo request body needed.\n\n**Files imported:**\n- `user1` ← `13aa10e8-c390-4416-a253-a4b364fffb9a.jsonl`\n- `user2` ← `4fc4c066-819e-4d23-9e14-f8d2514def76.jsonl`\n\n⚠️ If user1/user2 already exist, their records will be overwritten with fresh data."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "originalRequest": {
+                "method": "POST",
+                "url": { "raw": "{{baseUrl}}/api/bootstrap/import-default-users" }
+              },
+              "body": "{\n  \"message\": \"Imported two default users from workspace jsonl files\",\n  \"users\": [\n    { \"userId\": \"user1\", \"ddocId\": \"...\", \"sha256\": \"...\", \"...\" : \"...\" },\n    { \"userId\": \"user2\", \"ddocId\": \"...\", \"sha256\": \"...\", \"...\" : \"...\" }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
