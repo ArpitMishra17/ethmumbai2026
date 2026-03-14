@@ -104,7 +104,7 @@ async function anchorSession(
         fileverseRowId: fileverseRowId ?? null,
       }),
     });
-
+    console.log(res);
     const payload = await res.json().catch(() => ({} as Record<string, unknown>));
     if (!res.ok) {
       const error =
