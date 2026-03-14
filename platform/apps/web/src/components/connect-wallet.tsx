@@ -1,7 +1,6 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 export function ConnectWallet() {
@@ -13,12 +12,15 @@ export function ConnectWallet() {
   if (session) {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">
+        <span className="text-[14px] text-[#b5f542] font-mono">
           {address?.slice(0, 6)}...{address?.slice(-4)}
         </span>
-        <Button variant="ghost" size="sm" onClick={() => { signOut(); disconnect(); }}>
+        <button
+          onClick={() => { signOut(); disconnect(); }}
+          className="px-4 py-1.5 text-[14px] font-semibold rounded text-[#b5f542] bg-transparent border border-transparent hover:bg-[rgba(181,245,66,0.06)] transition-all cursor-pointer font-mono"
+        >
           Sign Out
-        </Button>
+        </button>
       </div>
     );
   }
@@ -26,12 +28,16 @@ export function ConnectWallet() {
   if (isConnected && !session) {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">
+        <span className="text-[14px] text-[#d4d4d8] font-mono">
           {address?.slice(0, 6)}...{address?.slice(-4)}
         </span>
-        <Button onClick={signIn} disabled={isLoading}>
+        <button
+          onClick={signIn}
+          disabled={isLoading}
+          className="px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer font-mono"
+        >
           {isLoading ? "Signing in..." : "Sign In"}
-        </Button>
+        </button>
       </div>
     );
   }
@@ -39,13 +45,13 @@ export function ConnectWallet() {
   return (
     <div className="flex gap-2">
       {connectors.map((connector) => (
-        <Button
+        <button
           key={connector.uid}
-          variant="outline"
           onClick={() => connect({ connector })}
+          className="px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-[#b5f542] bg-transparent hover:bg-[rgba(181,245,66,0.06)] transition-all cursor-pointer font-mono"
         >
           {connector.name}
-        </Button>
+        </button>
       ))}
     </div>
   );

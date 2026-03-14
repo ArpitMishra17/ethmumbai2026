@@ -6,16 +6,16 @@ interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
 
 export function Badge({ className = "", variant = "default", ...props }: BadgeProps) {
   const variants: Record<string, string> = {
-    default: "bg-primary text-primary-foreground",
-    secondary: "bg-secondary text-secondary-foreground",
-    destructive: "bg-destructive text-destructive-foreground",
-    outline: "text-foreground border",
-    success: "bg-green-600 text-white",
+    default: "text-lime-DEFAULT bg-lime-dim border-lime-border",
+    secondary: "text-muted-foreground bg-surface border-surface-border",
+    destructive: "text-red-400 bg-red-500/10 border-red-500/15",
+    outline: "text-foreground border-surface-border",
+    success: "text-lime-DEFAULT bg-lime-dim border-lime-border",
   };
 
   return (
     <div
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${variants[variant]} ${className}`}
+      className={`inline-flex items-center rounded-md border px-2.5 py-1 text-sm font-semibold font-mono tracking-wide uppercase ${variants[variant]} ${className}`}
       {...props}
     />
   );

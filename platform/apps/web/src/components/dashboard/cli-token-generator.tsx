@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export function CliTokenGenerator() {
   const [token, setToken] = useState("");
@@ -33,32 +31,48 @@ export function CliTokenGenerator() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">CLI Token</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {token ? (
-          <>
-            <code className="text-xs break-all block bg-muted p-3 rounded">{token}</code>
-            <div className="flex items-center gap-2">
-              <Button onClick={copyToken} size="sm" variant="outline">
-                {copied ? "Copied!" : "Copy token"}
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                agentcover setup --token &lt;token&gt;
-              </p>
-            </div>
-            <p className="text-xs text-destructive">
-              This token is shown only once. Store it securely — it cannot be retrieved later.
-            </p>
-          </>
-        ) : (
-          <Button onClick={generate} disabled={isLoading} size="sm">
-            {isLoading ? "Generating..." : "Generate CLI Token"}
-          </Button>
+    <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-5">
+      <div className="flex justify-between items-center mb-3">
+        <div className="text-[14px] text-[#e4e4e7] font-semibold">CLI Token</div>
+        {token && (
+          <div
+            className="text-[14px] text-[#b5f542] cursor-pointer hover:underline"
+            onClick={copyToken}
+          >
+            {copied ? "copied!" : "copy"}
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {token ? (
+        <div className="space-y-3">
+          {/* Terminal block */}
+          <div className="space-y-0 text-[14px] leading-[2] font-mono">
+            <div className="text-[#d4d4d8]">
+              <span className="text-[#d4d4d8]">$</span>{" "}
+              <span className="text-[#e4e4e7]">agentcover setup</span>{" "}
+              <span className="text-[#b5f542]">--token</span>{" "}
+              <span className="text-[#e4e4e7]">{token.slice(0, 12)}...</span>
+            </div>
+            <div className="text-[#d4d4d8]">
+              <span className="text-[#22c55e]">✓</span>{" "}
+              <span className="text-[#d4d4d8]">Token configured</span>
+            </div>
+          </div>
+
+          <p className="text-[14px] text-[#ef4444]">
+            Shown only once. Store it securely.
+          </p>
+        </div>
+      ) : (
+        <button
+          onClick={generate}
+          disabled={isLoading}
+          className="w-full px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer font-mono"
+        >
+          {isLoading ? "Generating..." : "Generate CLI Token"}
+        </button>
+      )}
+    </div>
   );
 }

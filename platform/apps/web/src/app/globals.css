@@ -1,47 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 0 0% 2%;
+    --foreground: 240 5% 90%;
+    --card: 0 0% 4%;
+    --card-foreground: 240 5% 90%;
+    --primary: 78 90% 61%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 240 5% 90%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 240 4% 85%;
+    --accent: 78 90% 61%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%;
-    --radius: 0.5rem;
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 78 90% 61%;
+    --radius: 0.375rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 0 0% 2%;
+    --foreground: 240 5% 90%;
+    --card: 0 0% 4%;
+    --card-foreground: 240 5% 90%;
+    --primary: 78 90% 61%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 240 5% 90%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 240 4% 85%;
+    --accent: 78 90% 61%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 263.4 70% 50.4%;
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 78 90% 61%;
   }
 }
 
@@ -51,5 +53,61 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'IBM Plex Mono', monospace;
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+/* Phosphor glow effects */
+@layer utilities {
+  .glow-lime {
+    box-shadow: 0 0 20px rgba(181, 245, 66, 0.08), 0 0 60px rgba(181, 245, 66, 0.04);
+  }
+  .text-lime {
+    color: #b5f542;
+  }
+  .bg-lime {
+    background-color: #b5f542;
+  }
+  .border-lime {
+    border-color: #b5f542;
+  }
+  .border-lime-subtle {
+    border-color: rgba(181, 245, 66, 0.15);
+  }
+  .bg-lime-subtle {
+    background-color: rgba(181, 245, 66, 0.04);
+  }
+  .bg-surface {
+    background-color: #0a0a0a;
+  }
+  .border-surface {
+    border-color: #1a1a1a;
+  }
+}
+
+/* Phosphor scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
+}
+
+/* Phosphor pulse animation */
+@keyframes phosphor-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-phosphor-pulse {
+  animation: phosphor-pulse 2s ease-in-out infinite;
 }

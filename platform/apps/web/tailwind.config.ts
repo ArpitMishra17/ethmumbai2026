@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        mono: ["'IBM Plex Mono'", "monospace"],
+        heading: ["'Space Grotesk'", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -39,11 +43,33 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        lime: {
+          DEFAULT: "#b5f542",
+          dim: "rgba(181, 245, 66, 0.08)",
+          subtle: "rgba(181, 245, 66, 0.04)",
+          border: "rgba(181, 245, 66, 0.15)",
+        },
+        surface: {
+          DEFAULT: "#0a0a0a",
+          border: "#1a1a1a",
+          hover: "#0d0d0d",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontSize: {
+        // Enforce minimum 14px — map sm to 14px
+        sm: ["14px", { lineHeight: "1.6" }],
+        base: ["15px", { lineHeight: "1.7" }],
+        lg: ["18px", { lineHeight: "1.5" }],
+        xl: ["20px", { lineHeight: "1.4" }],
+        "2xl": ["24px", { lineHeight: "1.3" }],
+        "3xl": ["30px", { lineHeight: "1.2" }],
+        "4xl": ["36px", { lineHeight: "1.1" }],
+        "5xl": ["44px", { lineHeight: "1.08" }],
       },
     },
   },

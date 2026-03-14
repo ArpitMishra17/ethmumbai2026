@@ -8,15 +8,14 @@ import { StepEns } from "./step-ens";
 import { StepAgent } from "./step-agent";
 import { StepVerify } from "./step-verify";
 import { StepCollector } from "./step-collector";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
 const STEPS = [
-  { key: "wallet_pending", label: "Connect Wallet" },
-  { key: "ens_pending", label: "ENS Name" },
-  { key: "agent_pending", label: "Register Agent" },
-  { key: "verification_pending", label: "Verify" },
-  { key: "collector_pending", label: "CLI Setup" },
+  { key: "wallet_pending", label: "Connect", chain: "any chain" },
+  { key: "ens_pending", label: "Claim ENS", chain: "eth sepolia" },
+  { key: "agent_pending", label: "Register", chain: "base sepolia" },
+  { key: "verification_pending", label: "Verify", chain: "eth sepolia" },
+  { key: "collector_pending", label: "CLI Token", chain: "off-chain" },
 ] as const;
 
 export function OnboardingWizard() {
@@ -27,7 +26,6 @@ export function OnboardingWizard() {
   const [agentDbId, setAgentDbId] = useState("");
   const [agentId, setAgentId] = useState(0);
 
-  // Fetch existing user data so verification step works even after refresh
   const fetchUserData = useCallback(async () => {
     try {
       const [agentsRes, ensRes] = await Promise.all([
@@ -64,7 +62,7 @@ export function OnboardingWizard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-[14px] text-[#d4d4d8] animate-phosphor-pulse">Loading...</p>
       </div>
     );
   }
@@ -73,32 +71,53 @@ export function OnboardingWizard() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Progress */}
-      <div className="flex gap-2">
-        {STEPS.map((step, i) => (
-          <div
-            key={step.key}
-            className={`flex-1 h-2 rounded-full ${
-              i <= currentStepIndex ? "bg-primary" : "bg-muted"
-            }`}
-          />
-        ))}
+      {/* Pipeline — matching c1-pipeline exactly */}
+      <div className="flex gap-0.5">
+        {STEPS.map((step, i) => {
+          const isActive = i === currentStepIndex;
+          const isDone = i < currentStepIndex;
+          return (
+            <div
+              key={step.key}
+              className={`flex-1 py-5 px-4 bg-[#0a0a0a] border transition-all ${
+                isActive
+                  ? "border-[#b5f542] bg-[rgba(181,245,66,0.04)]"
+                  : isDone
+                    ? "border-[rgba(181,245,66,0.15)] bg-[rgba(181,245,66,0.02)]"
+                    : "border-[#1a1a1a]"
+              } ${i === 0 ? "rounded-l-md" : ""} ${
+                i === STEPS.length - 1 ? "rounded-r-md" : ""
+              }`}
+            >
+              <div className={`text-[14px] mb-1 ${isActive || isDone ? "text-[#b5f542]" : "text-[#d4d4d8]"}`}>
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div className={`text-[14px] font-semibold ${isActive || isDone ? "text-[#e4e4e7]" : "text-[#d4d4d8]"}`}>
+                {step.label}
+              </div>
+              <span className={`inline-block mt-1.5 text-[14px] ${
+                isActive || isDone ? "text-[#d4d4d8]" : "text-[#d4d4d8]"
+              } bg-[rgba(255,255,255,0.03)] px-2 py-0.5 rounded`}>
+                {step.chain}
+              </span>
+            </div>
+          );
+        })}
       </div>
-      <p className="text-sm text-muted-foreground">
-        Step {currentStepIndex + 1} of {STEPS.length}: {STEPS[currentStepIndex]?.label}
-      </p>
 
       {/* Step content */}
       {status === "wallet_pending" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Connect Your Wallet</CardTitle>
-            <CardDescription>Connect and sign in to get started</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-8 text-center space-y-5">
+          <h3 className="text-[18px] font-semibold text-white font-heading">
+            Connect Your Wallet
+          </h3>
+          <p className="text-[14px] text-[#d4d4d8]">
+            SIWE auth via injected or Coinbase Wallet
+          </p>
+          <div className="flex justify-center">
             <ConnectWallet />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {status === "ens_pending" && (

@@ -4,7 +4,7 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className = "", ...props }, ref) => (
     <div
       ref={ref}
-      className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}
+      className={`rounded-lg border border-surface-border bg-surface text-foreground ${className}`}
       {...props}
     />
   )
@@ -13,14 +13,14 @@ Card.displayName = "Card";
 
 const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className = "", ...props }, ref) => (
-    <div ref={ref} className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props} />
+    <div ref={ref} className={`flex flex-col space-y-2 p-6 ${className}`} {...props} />
   )
 );
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLHeadingElement>>(
   ({ className = "", ...props }, ref) => (
-    <h3 ref={ref} className={`text-2xl font-semibold leading-none tracking-tight ${className}`} {...props} />
+    <h3 ref={ref} className={`text-lg font-semibold leading-none tracking-tight text-white font-heading ${className}`} {...props} />
   )
 );
 CardTitle.displayName = "CardTitle";

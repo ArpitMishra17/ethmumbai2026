@@ -2,9 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAccount, useSwitchChain, useWaitForTransactionReceipt } from "wagmi";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useAgentRegistry } from "@/hooks/use-agent-registry";
 import { BASE_SEPOLIA_CHAIN_ID } from "@/lib/constants";
 
@@ -29,14 +26,12 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
   const { data: receipt } = useWaitForTransactionReceipt({ hash: txHash, confirmations: 2 });
   const { data: metadataReceipt } = useWaitForTransactionReceipt({ hash: metadataTxHash });
 
-  // Auto-proceed when registration receipt arrives
   useEffect(() => {
     if (receipt && status === "confirming") {
       handleReceiptReady();
     }
   }, [receipt, status]);
 
-  // Auto-proceed when metadata receipt arrives
   useEffect(() => {
     if (metadataReceipt && status === "confirming_metadata") {
       handleMetadataConfirmed();
@@ -87,7 +82,6 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
       const agentIdNum = Number(agentId);
       const metadataUri = `${window.location.origin}/api/agents/${agentIdNum}/metadata`;
 
-      // Set metadata URI on-chain
       const metaHash = await setMetadataURI(agentId, metadataUri);
       setMetadataTxHash(metaHash);
       setStatus("confirming_metadata");
@@ -113,7 +107,6 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
       const agentIdNum = Number(agentIdRef.current);
       const metadataUri = `${window.location.origin}/api/agents/${agentIdNum}/metadata`;
 
-      // Persist to backend only after both txs confirmed
       const res = await fetch("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -152,47 +145,52 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Register Your Agent</CardTitle>
-        <CardDescription>
-          Register your AI agent on-chain (Base Sepolia) linked to {ensName}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">Agent Name</label>
-          <Input
-            placeholder="My AI Agent"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Description</label>
-          <Input
-            placeholder="A helpful assistant agent"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
+    <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-6 space-y-5">
+      <div>
+        <h3 className="text-[18px] font-semibold text-white font-heading mb-1">
+          Register Your Agent
+        </h3>
+        <p className="text-[14px] text-[#d4d4d8]">
+          On-chain tx to AgentRegistry contract on{" "}
+          <span className="text-[#b5f542]">Base Sepolia · 84532</span>{" "}
+          linked to {ensName}
+        </p>
+      </div>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+      <div>
+        <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px] mb-2">Agent Name</div>
+        <input
+          placeholder="My AI Agent"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full h-10 rounded border border-[#1a1a1a] bg-[#0d0d0d] px-4 text-[14px] text-[#e4e4e7] font-mono placeholder:text-[#d4d4d8] focus:outline-none focus:ring-1 focus:ring-[#b5f542] focus:border-[rgba(181,245,66,0.15)] transition-colors"
+        />
+      </div>
+      <div>
+        <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px] mb-2">Description</div>
+        <input
+          placeholder="A helpful assistant agent"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full h-10 rounded border border-[#1a1a1a] bg-[#0d0d0d] px-4 text-[14px] text-[#e4e4e7] font-mono placeholder:text-[#d4d4d8] focus:outline-none focus:ring-1 focus:ring-[#b5f542] focus:border-[rgba(181,245,66,0.15)] transition-colors"
+        />
+      </div>
 
-        <Button
-          onClick={handleRegister}
-          disabled={!name || status !== "idle"}
-          className="w-full"
-        >
-          {buttonText[status]}
-        </Button>
+      {error && <p className="text-[14px] text-[#ef4444]">{error}</p>}
 
-        {chainId !== BASE_SEPOLIA_CHAIN_ID && status === "idle" && (
-          <p className="text-xs text-muted-foreground">
-            You will be prompted to switch to Base Sepolia
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      <button
+        onClick={handleRegister}
+        disabled={!name || status !== "idle"}
+        className="w-full px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer font-mono"
+      >
+        {buttonText[status]}
+      </button>
+
+      {chainId !== BASE_SEPOLIA_CHAIN_ID && status === "idle" && (
+        <p className="text-[14px] text-[#d4d4d8]">
+          You will be prompted to switch to Base Sepolia
+        </p>
+      )}
+    </div>
   );
 }

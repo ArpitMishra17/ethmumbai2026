@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useSwitchChain, useWaitForTransactionReceipt } from "wagmi";
 import { namehash } from "viem";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { computeEnsip25RecordKey } from "@/lib/ensip25";
 import { publicResolverAbi } from "@/lib/ens";
 import { AGENT_REGISTRY_ADDRESS, ENS_PUBLIC_RESOLVER_ADDRESS, ETH_SEPOLIA_CHAIN_ID } from "@/lib/constants";
@@ -82,55 +80,68 @@ export function StepVerify({ ensName, agentId, agentDbId, onComplete }: StepVeri
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Verify Agent (ENSIP-25)</CardTitle>
-        <CardDescription>
-          Set a text record on your ENS name to prove ownership
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="rounded-md bg-muted p-3 space-y-2">
-          <p className="text-sm font-medium">Text Record Key:</p>
-          <code className="text-xs break-all block bg-background p-2 rounded">
+    <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-6 space-y-5">
+      <div>
+        <h3 className="text-[18px] font-semibold text-white font-heading mb-1">
+          ENSIP-25 Verify
+        </h3>
+        <p className="text-[14px] text-[#d4d4d8]">
+          Set ERC-7930 text record on ENS resolver at{" "}
+          <span className="text-[#b5f542]">Eth Sepolia · 11155111</span>
+        </p>
+      </div>
+
+      {/* Record preview — matching c1-record-box */}
+      <div className="rounded border border-[#1a1a1a] bg-[#0d0d0d] p-4 space-y-3">
+        <div>
+          <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px] mb-1">
+            Text Record Key
+          </div>
+          <div className="text-[14px] text-[#b5f542] break-all font-mono bg-[#0a0a0a] border border-[#1a1a1a] p-3 rounded">
             {recordKey}
-          </code>
-          <p className="text-sm font-medium">Value:</p>
-          <code className="text-xs block bg-background p-2 rounded">1</code>
+          </div>
         </div>
+        <div>
+          <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px] mb-1">
+            Value
+          </div>
+          <div className="text-[14px] text-[#b5f542] font-mono bg-[#0a0a0a] border border-[#1a1a1a] p-3 rounded">
+            1
+          </div>
+        </div>
+      </div>
 
-        {step === "set-record" && (
-          <Button
-            onClick={handleSetTextRecord}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? "Setting text record..." : "Set Text Record on Eth Sepolia"}
-          </Button>
-        )}
+      {step === "set-record" && (
+        <button
+          onClick={handleSetTextRecord}
+          disabled={isLoading}
+          className="w-full px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer font-mono"
+        >
+          {isLoading ? "Setting text record..." : "Set Text Record on Eth Sepolia"}
+        </button>
+      )}
 
-        {step === "verify" && (
-          <Button
-            onClick={handleVerify}
-            disabled={isLoading || (!receipt && !!txHash)}
-            className="w-full"
-          >
-            {isLoading
-              ? "Verifying..."
-              : !receipt && txHash
-                ? "Waiting for confirmation..."
-                : "Verify Now"}
-          </Button>
-        )}
+      {step === "verify" && (
+        <button
+          onClick={handleVerify}
+          disabled={isLoading || (!receipt && !!txHash)}
+          className="w-full px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer font-mono"
+        >
+          {isLoading
+            ? "Verifying..."
+            : !receipt && txHash
+              ? "Waiting for confirmation..."
+              : "Verify Now"}
+        </button>
+      )}
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-[14px] text-[#ef4444]">{error}</p>}
 
-        {chainId !== ETH_SEPOLIA_CHAIN_ID && step === "set-record" && (
-          <p className="text-xs text-muted-foreground">
-            You will be prompted to switch to Ethereum Sepolia
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      {chainId !== ETH_SEPOLIA_CHAIN_ID && step === "set-record" && (
+        <p className="text-[14px] text-[#d4d4d8]">
+          You will be prompted to switch to Ethereum Sepolia
+        </p>
+      )}
+    </div>
   );
 }

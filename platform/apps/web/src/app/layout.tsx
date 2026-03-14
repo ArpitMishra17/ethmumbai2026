@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "AgentCover - Insurance for AI Agents",
-  description: "On-chain insurance coverage for autonomous AI agents",
+  title: "AgentCover — On-Chain Insurance for AI Agents",
+  description: "On-chain coverage for autonomous AI agents. Register, verify via ENS, and get insured.",
 };
 
 export default function RootLayout({
@@ -17,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={inter.className}>
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>
