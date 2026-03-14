@@ -58,10 +58,19 @@ model OnboardingSession {
 model CliToken {
   id        String   @id @default(cuid())
   userId    String
-  token     String   @unique
+  tokenHash String   @unique
   name      String   @default("default")
   createdAt DateTime @default(now())
   expiresAt DateTime
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model SiweNonce {
+  id         String    @id @default(cuid())
+  address    String
+  nonce      String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
 }

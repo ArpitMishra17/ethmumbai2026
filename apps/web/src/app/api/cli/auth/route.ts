@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -12,17 +16,19 @@ export async function POST(req: NextRequest) {
   const { name } = await req.json().catch(() => ({ name: "default" }));
 
   const token = randomUUID();
-  const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
+  const tokenHashed = hashToken(token);
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
   await prisma.cliToken.create({
     data: {
       userId: session.userId,
-      token,
+      tokenHash: tokenHashed,
       name: name || "default",
       expiresAt,
     },
   });
 
+  // Return plaintext token only once — it is not stored
   return NextResponse.json({ token, expiresAt: expiresAt.toISOString() });
 }
 
@@ -34,8 +40,9 @@ export async function GET(req: NextRequest) {
   }
 
   const token = authHeader.slice(7);
+  const tokenHashed = hashToken(token);
   const cliToken = await prisma.cliToken.findUnique({
-    where: { token },
+    where: { tokenHash: tokenHashed },
     include: { user: true },
   });
 

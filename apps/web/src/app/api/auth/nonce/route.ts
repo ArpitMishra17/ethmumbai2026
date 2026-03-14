@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   }
 
   const nonce = generateNonce();
-  storeNonce(address, nonce);
+  await storeNonce(address, nonce);
 
   return NextResponse.json({ nonce });
 }

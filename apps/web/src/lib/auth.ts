@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import type { AuthSession } from "@/types";
 
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET || "dev-secret-change-me");
+if (!process.env.AUTH_SECRET) {
+  throw new Error("AUTH_SECRET environment variable is required. Set it in your .env file.");
+}
+const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
 const COOKIE_NAME = "agentcover-session";
 
 export async function createSession(session: AuthSession): Promise<string> {

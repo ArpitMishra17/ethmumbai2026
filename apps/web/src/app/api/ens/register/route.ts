@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createWalletClient, http } from "viem";
+import { createWalletClient, createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { getSession } from "@/lib/auth";
@@ -39,6 +39,11 @@ export async function POST(req: NextRequest) {
     const parentNode = getParentNamehash();
     const labelHash = getLabelHash(label);
 
+    const publicClient = createPublicClient({
+      chain: sepolia,
+      transport: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC || "https://rpc.sepolia.org"),
+    });
+
     const txHash = await walletClient.writeContract({
       address: ENS_REGISTRY_ADDRESS,
       abi: ensRegistryAbi,
@@ -51,6 +56,12 @@ export async function POST(req: NextRequest) {
         BigInt(0),
       ],
     });
+
+    // Wait for transaction confirmation before persisting
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+    if (receipt.status !== "success") {
+      return NextResponse.json({ error: "ENS transaction failed on-chain" }, { status: 500 });
+    }
 
     const fullName = `${label}.${ENS_PARENT_NAME}`;
 

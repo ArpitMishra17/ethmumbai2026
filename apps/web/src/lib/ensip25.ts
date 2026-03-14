@@ -47,12 +47,14 @@ export function computeEnsip25RecordKey(registryAddress: `0x${string}`, agentId:
  * Verify ENSIP-25 by:
  * 1. Reading the text record from ENS on Sepolia
  * 2. Reading the agent from AgentRegistry on Base Sepolia
- * 3. Confirming both match
+ * 3. Confirming both sides match: text record exists, agent is active,
+ *    agent's ensName matches, and agent's owner matches the expected wallet
  */
 export async function verifyEnsip25(
   ensName: string,
   registryAddress: `0x${string}`,
-  agentId: number
+  agentId: number,
+  expectedOwner?: string
 ): Promise<{ verified: boolean; reason?: string }> {
   const key = computeEnsip25RecordKey(registryAddress, agentId);
 
@@ -78,6 +80,14 @@ export async function verifyEnsip25(
 
     if (!agent.isActive) {
       return { verified: false, reason: "Agent is deactivated" };
+    }
+
+    if (agent.ensName !== ensName) {
+      return { verified: false, reason: "Agent ENS name does not match" };
+    }
+
+    if (expectedOwner && agent.owner.toLowerCase() !== expectedOwner.toLowerCase()) {
+      return { verified: false, reason: "Agent owner does not match authenticated user" };
     }
 
     return { verified: true };

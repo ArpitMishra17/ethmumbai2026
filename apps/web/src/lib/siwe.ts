@@ -1,6 +1,5 @@
 import { SiweMessage } from "siwe";
-
-const nonceStore = new Map<string, { nonce: string; expiresAt: number }>();
+import { prisma } from "@/lib/prisma";
 
 export function generateNonce(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -11,21 +10,34 @@ export function generateNonce(): string {
   return nonce;
 }
 
-export function storeNonce(address: string, nonce: string) {
-  nonceStore.set(address.toLowerCase(), {
-    nonce,
-    expiresAt: Date.now() + 5 * 60 * 1000,
+export async function storeNonce(address: string, nonce: string) {
+  await prisma.siweNonce.create({
+    data: {
+      address: address.toLowerCase(),
+      nonce,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
   });
 }
 
-export function consumeNonce(address: string): string | null {
-  const entry = nonceStore.get(address.toLowerCase());
-  if (!entry || entry.expiresAt < Date.now()) {
-    nonceStore.delete(address.toLowerCase());
-    return null;
+export async function consumeNonce(address: string, nonce: string): Promise<boolean> {
+  const entry = await prisma.siweNonce.findUnique({ where: { nonce } });
+
+  if (!entry) return false;
+  if (entry.address !== address.toLowerCase()) return false;
+  if (entry.expiresAt < new Date()) {
+    await prisma.siweNonce.delete({ where: { id: entry.id } });
+    return false;
   }
-  nonceStore.delete(address.toLowerCase());
-  return entry.nonce;
+  if (entry.consumedAt) return false;
+
+  // Atomically mark as consumed
+  const updated = await prisma.siweNonce.updateMany({
+    where: { id: entry.id, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
+
+  return updated.count === 1;
 }
 
 export async function verifySiweMessage(message: string, signature: string) {

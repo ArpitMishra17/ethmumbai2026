@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Agent has no ENS name" }, { status: 400 });
   }
 
-  const result = await verifyEnsip25(agent.ensName, AGENT_REGISTRY_ADDRESS, agent.agentId);
+  const result = await verifyEnsip25(agent.ensName, AGENT_REGISTRY_ADDRESS, agent.agentId, session.address);
 
   const newStatus = result.verified ? "verified" : "failed";
   await prisma.insuredAgent.update({

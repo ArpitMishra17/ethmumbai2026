@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAccount, useSwitchChain, useWaitForTransactionReceipt } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,18 +20,28 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "confirming" | "completing" | "done">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "confirming" | "setting_metadata" | "confirming_metadata" | "completing" | "done">("idle");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  const [metadataTxHash, setMetadataTxHash] = useState<`0x${string}` | undefined>();
   const [error, setError] = useState("");
+  const agentIdRef = useRef<bigint | null>(null);
 
-  const { data: receipt } = useWaitForTransactionReceipt({ hash: txHash });
+  const { data: receipt } = useWaitForTransactionReceipt({ hash: txHash, confirmations: 2 });
+  const { data: metadataReceipt } = useWaitForTransactionReceipt({ hash: metadataTxHash });
 
-  // Auto-proceed when receipt arrives
+  // Auto-proceed when registration receipt arrives
   useEffect(() => {
     if (receipt && status === "confirming") {
       handleReceiptReady();
     }
   }, [receipt, status]);
+
+  // Auto-proceed when metadata receipt arrives
+  useEffect(() => {
+    if (metadataReceipt && status === "confirming_metadata") {
+      handleMetadataConfirmed();
+    }
+  }, [metadataReceipt, status]);
 
   const handleRegister = async () => {
     if (!name) return;
@@ -55,7 +65,14 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
 
   const handleReceiptReady = async () => {
     if (!receipt) return;
-    setStatus("completing");
+
+    if (receipt.status !== "success") {
+      setError("Agent registration transaction failed on-chain");
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("setting_metadata");
     setError("");
 
     try {
@@ -66,13 +83,37 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
         return;
       }
 
+      agentIdRef.current = agentId;
       const agentIdNum = Number(agentId);
       const metadataUri = `${window.location.origin}/api/agents/${agentIdNum}/metadata`;
 
       // Set metadata URI on-chain
-      await setMetadataURI(agentId, metadataUri);
+      const metaHash = await setMetadataURI(agentId, metadataUri);
+      setMetadataTxHash(metaHash);
+      setStatus("confirming_metadata");
+    } catch (err: any) {
+      setError(err.message || "Failed to set metadata URI. You can retry.");
+      setStatus("idle");
+    }
+  };
 
-      // Persist to backend
+  const handleMetadataConfirmed = async () => {
+    if (!metadataReceipt || !receipt || !agentIdRef.current) return;
+
+    if (metadataReceipt.status !== "success") {
+      setError("Metadata transaction failed on-chain. You can retry.");
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("completing");
+    setError("");
+
+    try {
+      const agentIdNum = Number(agentIdRef.current);
+      const metadataUri = `${window.location.origin}/api/agents/${agentIdNum}/metadata`;
+
+      // Persist to backend only after both txs confirmed
       const res = await fetch("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,6 +145,8 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
     idle: "Register Agent on Base Sepolia",
     sending: "Confirm in wallet...",
     confirming: "Waiting for confirmation...",
+    setting_metadata: "Setting metadata (confirm in wallet)...",
+    confirming_metadata: "Waiting for metadata confirmation...",
     completing: "Completing registration...",
     done: "Done!",
   };

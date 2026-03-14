@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 export function CliTokenGenerator() {
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const generate = async () => {
     setIsLoading(true);
@@ -25,6 +26,12 @@ export function CliTokenGenerator() {
     }
   };
 
+  const copyToken = async () => {
+    await navigator.clipboard.writeText(token);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -34,8 +41,16 @@ export function CliTokenGenerator() {
         {token ? (
           <>
             <code className="text-xs break-all block bg-muted p-3 rounded">{token}</code>
-            <p className="text-xs text-muted-foreground">
-              agentcover setup --token {token}
+            <div className="flex items-center gap-2">
+              <Button onClick={copyToken} size="sm" variant="outline">
+                {copied ? "Copied!" : "Copy token"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                agentcover setup --token &lt;token&gt;
+              </p>
+            </div>
+            <p className="text-xs text-destructive">
+              This token is shown only once. Store it securely — it cannot be retrieved later.
             </p>
           </>
         ) : (

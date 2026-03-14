@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { address, chainId, nonce } = result.data;
-    const storedNonce = consumeNonce(address);
-    if (!storedNonce || storedNonce !== nonce) {
+    const nonceValid = await consumeNonce(address, nonce);
+    if (!nonceValid) {
       return NextResponse.json({ error: "Invalid or expired nonce" }, { status: 401 });
     }
 
