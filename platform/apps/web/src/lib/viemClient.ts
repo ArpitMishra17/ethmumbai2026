@@ -16,7 +16,9 @@ export const sessionRegistryAbi = sessionRegistryAbiJson as Abi;
 export const sessionRegistryAddress = requireEnv("CONTRACT_ADDRESS") as `0x${string}`;
 
 const rpcUrl = process.env.BASE_RPC_URL || "https://sepolia.base.org";
-const account = privateKeyToAccount(requireEnv("BACKEND_PRIVATE_KEY") as `0x${string}`);
+const rawPrivateKey = requireEnv("BACKEND_PRIVATE_KEY").trim();
+const backendPrivateKey = rawPrivateKey.startsWith("0x") ? rawPrivateKey : `0x${rawPrivateKey}`;
+const account = privateKeyToAccount(backendPrivateKey as `0x${string}`);
 
 export const walletClient = createWalletClient({
   account,

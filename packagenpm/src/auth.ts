@@ -29,6 +29,10 @@ export async function validateToken(
   platformUrl: string,
   token: string
 ): Promise<PlatformUser> {
+  if (!/^[\x00-\x7F]*$/.test(token)) {
+    throw new Error("Invalid token format (contains non-ASCII characters).");
+  }
+
   const url = `${platformUrl}/api/cli/auth`;
 
   const res = await fetch(url, {
@@ -56,6 +60,10 @@ export async function fetchAgents(
   platformUrl: string,
   token: string
 ): Promise<PlatformAgent[]> {
+  if (!/^[\x00-\x7F]*$/.test(token)) {
+    throw new Error("Invalid token format (contains non-ASCII characters).");
+  }
+
   const url = `${platformUrl}/api/cli/agents`;
 
   const res = await fetch(url, {

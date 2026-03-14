@@ -1,0 +1,22 @@
+{
+  "sessionId": "dc797698a650c663fa51941641a12522",
+  "tool": "codex",
+  "agentId": "123",
+  "agentEns": "test.eth",
+  "walletId": "0xabc",
+  "userId": "user-1",
+  "orgId": "org-1",
+  "workspacePath": "rollout-2026-03-15T01-18-38-019cede4-c46d-7031-bad0-07259549cdf9.jsonl",
+  "startedAt": "2026-03-14T19:48:43.693Z",
+  "endedAt": "2026-03-14T19:48:57.039Z",
+  "messages": [],
+  "toolCalls": [],
+  "filesChanged": [],
+  "shellCommands": [],
+  "approvals": [],
+  "exitReason": "unknown",
+  "summary": "No summary available",
+  "tokenEstimate": 0,
+  "toolCallCount": 0,
+  "sanitized": true
+}
