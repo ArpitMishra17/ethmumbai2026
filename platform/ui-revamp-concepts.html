@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentCover — UI Revamp Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #08080c; color: #e4e4e7; }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: center; gap: 6px;
+      padding: 14px; backdrop-filter: blur(20px); background: rgba(8,8,12,.85);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .nav a {
+      padding: 7px 18px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      color: #71717a; text-decoration: none; transition: all .2s;
+      font-family: 'Inter', sans-serif; border: 1px solid transparent;
+    }
+    .nav a:hover { color: #fff; background: rgba(255,255,255,.05); }
+    .nav a.on { color: #fff; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.1); }
+
+    section { min-height: 100vh; padding: 90px 0 80px; }
+    .tag {
+      text-align: center; padding: 10px 22px; margin: 0 auto 32px;
+      font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      width: fit-content; border-radius: 4px; font-family: 'Inter', sans-serif;
+    }
+    .sec-title { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #fff; font-family: 'Inter', sans-serif; }
+    .sec-sub { text-align: center; font-size: 13px; color: #52525b; margin-bottom: 56px; max-width: 520px; margin-inline: auto; line-height: 1.6; font-family: 'Inter', sans-serif; }
+
+    /* ═══════════════════════════════════════════════════════════
+       C1: PHOSPHOR — Electric lime on black. Hacker/cypherpunk.
+       Shows the actual cross-chain architecture as the hero.
+    ═══════════════════════════════════════════════════════════ */
+    .c1 { background: #050505; font-family: 'IBM Plex Mono', monospace; }
+    .c1 .tag { color: #b5f542; border: 1px solid rgba(181,245,66,.2); background: rgba(181,245,66,.04); }
+    .c1-f { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+
+    .c1-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 56px; }
+    .c1-kicker { font-size: 11px; color: #b5f542; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+    .c1-h1 { font-size: 44px; font-weight: 700; line-height: 1.08; color: #fff; font-family: 'Space Grotesk', sans-serif; margin-bottom: 20px; }
+    .c1-h1 em { font-style: normal; color: #b5f542; }
+    .c1-p { font-size: 13px; color: #71717a; line-height: 1.8; margin-bottom: 28px; }
+    .c1-p code { color: #b5f542; background: rgba(181,245,66,.08); padding: 1px 6px; border-radius: 3px; font-size: 11px; }
+
+    .c1-btns { display: flex; gap: 10px; }
+    .c1-btn {
+      padding: 11px 22px; font-size: 12px; font-weight: 600; border-radius: 4px;
+      border: 1px solid #b5f542; color: #000; background: #b5f542; cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace; transition: all .15s;
+    }
+    .c1-btn:hover { background: #c8fc5a; }
+    .c1-btn.ghost { background: transparent; color: #b5f542; }
+    .c1-btn.ghost:hover { background: rgba(181,245,66,.06); }
+
+    /* Cross-chain architecture diagram */
+    .c1-arch {
+      border: 1px solid #1a1a1a; border-radius: 8px; background: #0a0a0a;
+      padding: 28px; position: relative;
+    }
+    .c1-arch-label { font-size: 9px; color: #3f3f46; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
+    .c1-chain-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .c1-chain {
+      flex: 1; padding: 16px; border-radius: 6px; border: 1px solid #1a1a1a;
+      background: #0d0d0d;
+    }
+    .c1-chain-name { font-size: 10px; color: #52525b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .c1-chain-name .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .c1-chain-name .dot.blue { background: #3b82f6; }
+    .c1-chain-name .dot.lime { background: #b5f542; }
+    .c1-chain-val { font-size: 13px; color: #e4e4e7; font-weight: 600; }
+    .c1-chain-detail { font-size: 10px; color: #3f3f46; margin-top: 4px; }
+
+    .c1-bridge {
+      text-align: center; padding: 8px; font-size: 10px; color: #3f3f46;
+      border-left: 1px dashed #1a1a1a; border-right: 1px dashed #1a1a1a;
+      margin: 0 40px; position: relative;
+    }
+    .c1-bridge::before { content: "ENSIP-25 ↔ ERC-7930"; color: #b5f542; font-size: 9px; letter-spacing: 1px; }
+
+    .c1-record-box {
+      margin-top: 12px; padding: 12px; border-radius: 4px; background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+    }
+    .c1-record-key { font-size: 9px; color: #3f3f46; margin-bottom: 4px; }
+    .c1-record-val { font-size: 10px; color: #b5f542; word-break: break-all; }
+
+    /* Onboarding pipeline */
+    .c1-pipeline { display: flex; gap: 2px; margin-bottom: 56px; }
+    .c1-pipe-step {
+      flex: 1; padding: 20px 16px; background: #0a0a0a; border: 1px solid #1a1a1a;
+      position: relative; transition: all .2s;
+    }
+    .c1-pipe-step:first-child { border-radius: 6px 0 0 6px; }
+    .c1-pipe-step:last-child { border-radius: 0 6px 6px 0; }
+    .c1-pipe-step:hover { border-color: #b5f542; background: rgba(181,245,66,.02); }
+    .c1-pipe-step.active { border-color: #b5f542; background: rgba(181,245,66,.04); }
+    .c1-pipe-num { font-size: 9px; color: #3f3f46; margin-bottom: 8px; }
+    .c1-pipe-step.active .c1-pipe-num { color: #b5f542; }
+    .c1-pipe-title { font-size: 12px; color: #e4e4e7; font-weight: 600; margin-bottom: 4px; }
+    .c1-pipe-desc { font-size: 10px; color: #3f3f46; line-height: 1.5; }
+    .c1-pipe-chain { font-size: 9px; color: #52525b; margin-top: 8px; padding: 3px 8px; background: rgba(255,255,255,.03); border-radius: 3px; display: inline-block; }
+
+    /* Agent terminal card */
+    .c1-agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .c1-agent-card {
+      padding: 20px; border: 1px solid #1a1a1a; border-radius: 6px; background: #0a0a0a;
+      transition: all .2s;
+    }
+    .c1-agent-card:hover { border-color: #2a2a2a; }
+    .c1-agent-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .c1-agent-name { font-size: 14px; color: #e4e4e7; font-weight: 600; }
+    .c1-agent-ens { font-size: 10px; color: #b5f542; margin-top: 2px; }
+    .c1-agent-status {
+      font-size: 9px; padding: 3px 8px; border-radius: 3px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .c1-agent-status.verified { color: #b5f542; background: rgba(181,245,66,.08); border: 1px solid rgba(181,245,66,.15); }
+    .c1-agent-status.pending { color: #f59e0b; background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.15); }
+    .c1-agent-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .c1-agent-field {}
+    .c1-agent-field-label { font-size: 9px; color: #3f3f46; text-transform: uppercase; letter-spacing: 1px; }
+    .c1-agent-field-val { font-size: 11px; color: #a1a1aa; margin-top: 2px; }
+
+    .c1-cli-box {
+      grid-column: span 2; padding: 20px; border: 1px solid #1a1a1a;
+      border-radius: 6px; background: #0a0a0a;
+    }
+    .c1-cli-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .c1-cli-title { font-size: 12px; color: #e4e4e7; font-weight: 600; }
+    .c1-cli-copy { font-size: 10px; color: #b5f542; cursor: pointer; }
+    .c1-cli-line { font-size: 11px; line-height: 2; color: #52525b; }
+    .c1-cli-line .cmd { color: #e4e4e7; }
+    .c1-cli-line .flag { color: #b5f542; }
+    .c1-cli-line .out { color: #3f3f46; }
+    .c1-cli-line .ok { color: #22c55e; }
+
+    /* ═══════════════════════════════════════════════════════════
+       C2: DEEP WATER — Teal + steel. Institutional trust.
+       Hero is a live agent dashboard with real data layout.
+    ═══════════════════════════════════════════════════════════ */
+    .c2 { background: #0b1219; font-family: 'DM Sans', sans-serif; }
+    .c2 .tag { color: #0ea5e9; border: 1px solid rgba(14,165,233,.2); background: rgba(14,165,233,.04); }
+    .c2-f { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+
+    .c2-hero-split { display: grid; grid-template-columns: 5fr 7fr; gap: 40px; align-items: start; margin-bottom: 48px; }
+    .c2-hero-text {}
+    .c2-live-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #0ea5e9; font-weight: 600; margin-bottom: 20px; }
+    .c2-live-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #0ea5e9; animation: pulse2 2s infinite; }
+    @keyframes pulse2 { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+    .c2-h1 { font-size: 42px; font-weight: 800; line-height: 1.08; color: #f0f4f8; margin-bottom: 16px; }
+    .c2-h1 span { color: #0ea5e9; }
+    .c2-p { font-size: 15px; color: #64748b; line-height: 1.7; margin-bottom: 28px; }
+    .c2-btns { display: flex; gap: 10px; }
+    .c2-btn {
+      padding: 12px 28px; font-size: 14px; font-weight: 600; border-radius: 8px;
+      border: none; cursor: pointer; transition: all .2s; font-family: 'DM Sans', sans-serif;
+    }
+    .c2-btn.primary { background: #0ea5e9; color: #fff; }
+    .c2-btn.primary:hover { background: #0284c7; }
+    .c2-btn.secondary { background: rgba(14,165,233,.06); color: #0ea5e9; border: 1px solid rgba(14,165,233,.15); }
+
+    /* Dashboard preview — the hero IS the product */
+    .c2-dash {
+      border-radius: 12px; border: 1px solid #1e293b; background: #0f1923;
+      overflow: hidden;
+    }
+    .c2-dash-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-bottom: 1px solid #1e293b; background: #0c1620;
+    }
+    .c2-dash-tabs { display: flex; gap: 0; }
+    .c2-dash-tab {
+      padding: 5px 14px; font-size: 11px; font-weight: 600; color: #475569;
+      border: 1px solid #1e293b; margin-right: -1px;
+    }
+    .c2-dash-tab:first-child { border-radius: 5px 0 0 5px; }
+    .c2-dash-tab:last-child { border-radius: 0 5px 5px 0; }
+    .c2-dash-tab.on { background: rgba(14,165,233,.08); color: #0ea5e9; border-color: rgba(14,165,233,.2); }
+    .c2-dash-addr { font-size: 11px; color: #475569; font-family: 'IBM Plex Mono', monospace; }
+
+    .c2-dash-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: #1e293b; border-bottom: 1px solid #1e293b;
+    }
+    .c2-dash-stat { padding: 16px; background: #0f1923; }
+    .c2-dash-stat-label { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .c2-dash-stat-val { font-size: 22px; font-weight: 800; color: #f0f4f8; }
+    .c2-dash-stat-val.teal { color: #0ea5e9; }
+    .c2-dash-stat-delta { font-size: 10px; color: #22c55e; margin-top: 2px; }
+
+    .c2-dash-agents { padding: 16px; }
+    .c2-dash-agents-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .c2-agent-row {
+      display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr; gap: 8px;
+      align-items: center; padding: 10px 0; border-bottom: 1px solid #1e293b;
+      font-size: 12px;
+    }
+    .c2-agent-row:last-child { border: none; }
+    .c2-ar-name { color: #f0f4f8; font-weight: 600; }
+    .c2-ar-ens { color: #0ea5e9; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+    .c2-ar-chain { color: #475569; font-size: 10px; }
+    .c2-ar-badge {
+      font-size: 9px; padding: 2px 8px; border-radius: 3px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .5px; width: fit-content;
+    }
+    .c2-ar-badge.v { color: #0ea5e9; background: rgba(14,165,233,.1); }
+    .c2-ar-badge.p { color: #f59e0b; background: rgba(245,158,11,.1); }
+    .c2-ar-id { color: #475569; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+
+    /* Verification flow */
+    .c2-verify-section { margin-bottom: 48px; }
+    .c2-verify-title { font-size: 18px; font-weight: 700; color: #f0f4f8; margin-bottom: 8px; }
+    .c2-verify-sub { font-size: 13px; color: #475569; margin-bottom: 24px; }
+    .c2-verify-flow {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+      border: 1px solid #1e293b; border-radius: 10px; overflow: hidden;
+    }
+    .c2-vf-step {
+      padding: 28px 24px; border-right: 1px solid #1e293b; background: #0f1923;
+      position: relative;
+    }
+    .c2-vf-step:last-child { border-right: none; }
+    .c2-vf-step::after {
+      content: '→'; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+      color: #1e293b; font-size: 16px; z-index: 1;
+    }
+    .c2-vf-step:last-child::after { display: none; }
+    .c2-vf-chain {
+      font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+    }
+    .c2-vf-chain .dot { width: 4px; height: 4px; border-radius: 50%; }
+    .c2-vf-chain .dot.eth { background: #6366f1; }
+    .c2-vf-chain .dot.base { background: #3b82f6; }
+    .c2-vf-chain .dot.both { background: #0ea5e9; }
+    .c2-vf-title { font-size: 14px; font-weight: 700; color: #f0f4f8; margin-bottom: 6px; }
+    .c2-vf-desc { font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 12px; }
+    .c2-vf-code {
+      font-size: 10px; color: #0ea5e9; background: rgba(14,165,233,.04);
+      border: 1px solid rgba(14,165,233,.1); padding: 8px 10px; border-radius: 4px;
+      font-family: 'IBM Plex Mono', monospace; word-break: break-all; line-height: 1.5;
+    }
+
+    /* Economics */
+    .c2-econ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .c2-econ-card {
+      padding: 24px; border: 1px solid #1e293b; border-radius: 10px; background: #0f1923;
+    }
+    .c2-econ-card-title { font-size: 13px; font-weight: 700; color: #f0f4f8; margin-bottom: 16px; }
+    .c2-pool-row {
+      display: flex; align-items: center; gap: 12px; padding: 8px 0;
+      border-bottom: 1px solid #1e293b; font-size: 12px;
+    }
+    .c2-pool-row:last-child { border: none; }
+    .c2-pool-color { width: 8px; height: 8px; border-radius: 2px; }
+    .c2-pool-name { flex: 1; color: #94a3b8; }
+    .c2-pool-val { color: #f0f4f8; font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+    .c2-pool-pct { color: #0ea5e9; font-size: 11px; }
+
+    .c2-premium-calc {
+      border: 1px dashed #1e293b; border-radius: 8px; padding: 16px; margin-top: 16px;
+    }
+    .c2-premium-row { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; }
+    .c2-premium-row .label { color: #475569; }
+    .c2-premium-row .val { color: #f0f4f8; font-family: 'IBM Plex Mono', monospace; }
+    .c2-premium-row.total { border-top: 1px solid #1e293b; margin-top: 4px; padding-top: 10px; }
+    .c2-premium-row.total .val { color: #0ea5e9; font-weight: 700; font-size: 14px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       C3: EMBER — Warm amber + dark earth. Economics-first.
+       Hero leads with the risk model, not a tagline.
+    ═══════════════════════════════════════════════════════════ */
+    .c3 { background: #0f0d0a; font-family: 'Space Grotesk', sans-serif; }
+    .c3 .tag { color: #f59e0b; border: 1px solid rgba(245,158,11,.2); background: rgba(245,158,11,.04); }
+    .c3-f { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+
+    .c3-hero-full { text-align: center; margin-bottom: 56px; }
+    .c3-h1 { font-size: 50px; font-weight: 700; line-height: 1.08; color: #faf5ef; margin-bottom: 16px; }
+    .c3-h1 em { font-style: normal; color: #f59e0b; }
+    .c3-hero-p { font-size: 15px; color: #78716c; line-height: 1.7; max-width: 520px; margin: 0 auto 28px; }
+    .c3-btns-center { display: flex; gap: 10px; justify-content: center; }
+    .c3-btn {
+      padding: 12px 28px; font-size: 13px; font-weight: 700; border-radius: 6px;
+      border: none; cursor: pointer; transition: all .15s; font-family: 'Space Grotesk', sans-serif;
+    }
+    .c3-btn.primary { background: #f59e0b; color: #0f0d0a; }
+    .c3-btn.primary:hover { background: #fbbf24; }
+    .c3-btn.ghost { background: transparent; color: #a8a29e; border: 1px solid #292524; }
+    .c3-btn.ghost:hover { border-color: #44403c; color: #faf5ef; }
+
+    /* Risk model — the actual product pitch */
+    .c3-risk-hero {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 48px;
+    }
+    .c3-risk-card {
+      padding: 28px; border: 1px solid #292524; border-radius: 10px;
+      background: linear-gradient(180deg, #141210 0%, #0f0d0a 100%);
+      transition: all .2s;
+    }
+    .c3-risk-card:hover { border-color: #44403c; }
+    .c3-risk-card.featured { border-color: rgba(245,158,11,.25); background: linear-gradient(180deg, #1a1610 0%, #0f0d0a 100%); }
+    .c3-risk-icon { font-size: 24px; margin-bottom: 16px; }
+    .c3-risk-title { font-size: 15px; font-weight: 700; color: #faf5ef; margin-bottom: 8px; }
+    .c3-risk-desc { font-size: 12px; color: #78716c; line-height: 1.7; margin-bottom: 16px; }
+    .c3-risk-metric { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-top: 1px solid #292524; }
+    .c3-risk-metric-label { font-size: 10px; color: #57534e; text-transform: uppercase; letter-spacing: 1px; }
+    .c3-risk-metric-val { font-size: 14px; font-weight: 700; color: #faf5ef; }
+    .c3-risk-metric-val.amber { color: #f59e0b; }
+    .c3-risk-metric-val.green { color: #22c55e; }
+
+    /* Agent identity section */
+    .c3-identity { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 48px; }
+    .c3-id-card {
+      padding: 28px; border: 1px solid #292524; border-radius: 10px; background: #141210;
+    }
+    .c3-id-title { font-size: 14px; font-weight: 700; color: #faf5ef; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .c3-id-title .chain-badge {
+      font-size: 9px; padding: 2px 8px; border-radius: 3px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .c3-id-title .chain-badge.eth { color: #818cf8; background: rgba(129,140,248,.1); }
+    .c3-id-title .chain-badge.base { color: #3b82f6; background: rgba(59,130,246,.1); }
+
+    .c3-ens-preview {
+      padding: 16px; border-radius: 6px; background: #0f0d0a; border: 1px solid #292524;
+      margin-bottom: 12px;
+    }
+    .c3-ens-domain { font-size: 18px; font-weight: 700; color: #f59e0b; margin-bottom: 8px; }
+    .c3-ens-owner { font-size: 10px; color: #57534e; font-family: 'IBM Plex Mono', monospace; }
+    .c3-ens-records { margin-top: 12px; }
+    .c3-ens-record {
+      display: flex; justify-content: space-between; font-size: 10px; padding: 6px 0;
+      border-top: 1px solid #1c1917;
+    }
+    .c3-ens-record .key { color: #78716c; font-family: 'IBM Plex Mono', monospace; }
+    .c3-ens-record .val { color: #a8a29e; font-family: 'IBM Plex Mono', monospace; }
+
+    .c3-registry-preview { }
+    .c3-reg-entry {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid #292524;
+    }
+    .c3-reg-entry:last-child { border: none; }
+    .c3-reg-id {
+      width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      background: rgba(245,158,11,.06); color: #f59e0b; font-size: 12px; font-weight: 700;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .c3-reg-name { font-size: 13px; color: #faf5ef; font-weight: 600; }
+    .c3-reg-sub { font-size: 10px; color: #57534e; margin-top: 2px; }
+    .c3-reg-status {
+      font-size: 9px; padding: 3px 10px; border-radius: 3px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .c3-reg-status.active { color: #22c55e; background: rgba(34,197,94,.08); }
+
+    /* Premium calculator */
+    .c3-calc {
+      border: 1px solid #292524; border-radius: 10px; background: #141210;
+      overflow: hidden;
+    }
+    .c3-calc-header {
+      padding: 20px 28px; border-bottom: 1px solid #292524;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .c3-calc-title { font-size: 15px; font-weight: 700; color: #faf5ef; }
+    .c3-calc-badge { font-size: 10px; color: #f59e0b; padding: 4px 12px; border-radius: 4px; background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.12); }
+    .c3-calc-body { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .c3-calc-inputs {}
+    .c3-calc-input { margin-bottom: 16px; }
+    .c3-calc-label { font-size: 11px; color: #78716c; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .c3-calc-field {
+      width: 100%; padding: 10px 14px; border-radius: 6px; font-size: 14px;
+      background: #0f0d0a; border: 1px solid #292524; color: #faf5ef;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .c3-calc-result { padding: 20px; background: #0f0d0a; border-radius: 8px; border: 1px solid #292524; }
+    .c3-calc-result-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; }
+    .c3-calc-result-row .l { color: #78716c; }
+    .c3-calc-result-row .v { color: #faf5ef; font-weight: 600; }
+    .c3-calc-result-row.total { border-top: 1px solid #292524; margin-top: 8px; padding-top: 12px; }
+    .c3-calc-result-row.total .v { color: #f59e0b; font-size: 20px; font-weight: 800; }
+    .c3-calc-result-row.total .l { font-weight: 600; color: #a8a29e; }
+
+    /* ═══════════════════════════════════════════════════════════
+       C4: INFRARED — Coral/salmon + deep navy. Protection duality.
+       Hero: onboarding wizard reimagined as a spatial flow.
+    ═══════════════════════════════════════════════════════════ */
+    .c4 { background: #0a0e1a; font-family: 'DM Sans', sans-serif; }
+    .c4 .tag { color: #fb7185; border: 1px solid rgba(251,113,133,.2); background: rgba(251,113,133,.04); }
+    .c4-f { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+
+    .c4-hero-center { text-align: center; margin-bottom: 56px; }
+    .c4-h1 {
+      font-size: 50px; font-weight: 800; line-height: 1.08; margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 30%, #fb7185 70%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .c4-hero-p { font-size: 15px; color: #475569; line-height: 1.7; max-width: 480px; margin: 0 auto 28px; }
+    .c4-btns-center { display: flex; gap: 10px; justify-content: center; }
+    .c4-btn {
+      padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 10px;
+      border: none; cursor: pointer; transition: all .2s; font-family: 'DM Sans', sans-serif;
+    }
+    .c4-btn.primary { background: #fb7185; color: #0a0e1a; }
+    .c4-btn.primary:hover { background: #f43f5e; }
+    .c4-btn.ghost { background: rgba(251,113,133,.04); color: #fb7185; border: 1px solid rgba(251,113,133,.12); }
+
+    /* Onboarding reimagined as connected nodes */
+    .c4-flow { position: relative; margin-bottom: 56px; }
+    .c4-flow-line {
+      position: absolute; top: 40px; left: 10%; right: 10%; height: 2px;
+      background: linear-gradient(90deg, rgba(251,113,133,.3), rgba(99,102,241,.3), rgba(59,130,246,.3), rgba(34,197,94,.3));
+      z-index: 0;
+    }
+    .c4-flow-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; position: relative; z-index: 1; }
+    .c4-flow-step { text-align: center; }
+    .c4-flow-node {
+      width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; border: 2px solid;
+      transition: all .3s;
+    }
+    .c4-flow-node.n1 { background: rgba(251,113,133,.08); border-color: rgba(251,113,133,.25); color: #fb7185; }
+    .c4-flow-node.n2 { background: rgba(168,85,247,.08); border-color: rgba(168,85,247,.25); color: #a855f7; }
+    .c4-flow-node.n3 { background: rgba(99,102,241,.08); border-color: rgba(99,102,241,.25); color: #6366f1; }
+    .c4-flow-node.n4 { background: rgba(59,130,246,.08); border-color: rgba(59,130,246,.25); color: #3b82f6; }
+    .c4-flow-node.n5 { background: rgba(34,197,94,.08); border-color: rgba(34,197,94,.25); color: #22c55e; }
+    .c4-flow-label { font-size: 12px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .c4-flow-desc { font-size: 10px; color: #475569; line-height: 1.5; }
+    .c4-flow-chain-tag { font-size: 9px; color: #334155; margin-top: 6px; padding: 2px 8px; background: rgba(255,255,255,.03); border-radius: 3px; display: inline-block; }
+
+    /* Two-panel: agent card + verification proof */
+    .c4-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 48px; }
+    .c4-panel {
+      border-radius: 12px; border: 1px solid #1e293b; background: #0f1320;
+      overflow: hidden;
+    }
+    .c4-panel-head {
+      padding: 16px 20px; border-bottom: 1px solid #1e293b;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .c4-panel-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+    .c4-panel-badge { font-size: 9px; padding: 3px 10px; border-radius: 4px; font-weight: 600; }
+    .c4-panel-badge.coral { color: #fb7185; background: rgba(251,113,133,.08); }
+    .c4-panel-badge.blue { color: #3b82f6; background: rgba(59,130,246,.08); }
+    .c4-panel-body { padding: 20px; }
+
+    /* Agent card with identity */
+    .c4-agent-identity { display: flex; gap: 16px; margin-bottom: 16px; }
+    .c4-agent-avatar {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(251,113,133,.15), rgba(168,85,247,.15));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fb7185;
+    }
+    .c4-agent-primary { font-size: 16px; font-weight: 700; color: #f1f5f9; }
+    .c4-agent-ens { font-size: 12px; color: #fb7185; font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+    .c4-agent-desc { font-size: 12px; color: #475569; margin-top: 2px; }
+
+    .c4-agent-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .c4-af {
+      padding: 12px; border-radius: 8px; background: rgba(255,255,255,.02);
+      border: 1px solid #1e293b;
+    }
+    .c4-af-label { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .c4-af-val { font-size: 12px; color: #e2e8f0; font-weight: 600; }
+    .c4-af-val.mono { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #94a3b8; }
+
+    /* Verification proof */
+    .c4-proof-step { padding: 12px 0; border-bottom: 1px solid #1e293b; }
+    .c4-proof-step:last-child { border: none; }
+    .c4-proof-num { font-size: 9px; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .c4-proof-title { font-size: 12px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+    .c4-proof-code {
+      font-size: 10px; color: #94a3b8; background: rgba(255,255,255,.02);
+      padding: 8px 10px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace;
+      word-break: break-all; line-height: 1.5; border: 1px solid #1e293b;
+    }
+    .c4-proof-code .hl { color: #fb7185; }
+
+    /* Coverage tiers with real agent-specific coverage types */
+    .c4-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .c4-tier {
+      padding: 28px; border-radius: 12px; border: 1px solid #1e293b;
+      background: #0f1320; transition: all .2s;
+    }
+    .c4-tier:hover { border-color: #334155; }
+    .c4-tier.feat { border-color: rgba(251,113,133,.2); background: linear-gradient(180deg, #13101e 0%, #0f1320 100%); }
+    .c4-tier-name { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 12px; }
+    .c4-tier.feat .c4-tier-name { color: #fb7185; }
+    .c4-tier-price { font-size: 32px; font-weight: 800; color: #f1f5f9; margin-bottom: 4px; }
+    .c4-tier-price span { font-size: 13px; color: #475569; font-weight: 400; }
+    .c4-tier-desc { font-size: 12px; color: #475569; margin-bottom: 20px; line-height: 1.5; }
+    .c4-tier-list { list-style: none; }
+    .c4-tier-list li {
+      font-size: 12px; color: #94a3b8; padding: 7px 0; display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .c4-tier-list li:last-child { border: none; }
+    .c4-tier-list li .icon { font-size: 10px; width: 16px; text-align: center; }
+    .c4-tier-list li .icon.y { color: #22c55e; }
+    .c4-tier-list li .icon.n { color: #334155; }
+
+    /* ═══════════════════════════════════════════════════════════
+       C5: PAPER — High-contrast B&W + electric blue. Editorial.
+       Information-dense, newspaper-style, zero fluff.
+    ═══════════════════════════════════════════════════════════ */
+    .c5 { background: #fafafa; font-family: 'DM Sans', sans-serif; color: #171717; }
+    .c5 .tag { color: #2563eb; border: 1px solid rgba(37,99,235,.2); background: rgba(37,99,235,.06); }
+    .c5-f { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    .c5 .sec-title { color: #171717; }
+    .c5 .sec-sub { color: #737373; }
+
+    .c5-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-bottom: 56px; }
+    .c5-h1 { font-size: 46px; font-weight: 800; line-height: 1.06; color: #0a0a0a; margin-bottom: 16px; }
+    .c5-h1 span { color: #2563eb; }
+    .c5-hero-p { font-size: 15px; color: #525252; line-height: 1.7; margin-bottom: 24px; }
+    .c5-btns { display: flex; gap: 10px; }
+    .c5-btn {
+      padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 8px;
+      border: none; cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif;
+    }
+    .c5-btn.primary { background: #2563eb; color: #fff; }
+    .c5-btn.primary:hover { background: #1d4ed8; }
+    .c5-btn.outline { background: #fff; color: #171717; border: 1px solid #e5e5e5; }
+    .c5-btn.outline:hover { border-color: #a3a3a3; }
+
+    /* Stats strip */
+    .c5-hero-stats {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    }
+    .c5-hero-stat {
+      padding: 20px; border-radius: 10px; background: #fff;
+      border: 1px solid #e5e5e5;
+    }
+    .c5-hero-stat-val { font-size: 28px; font-weight: 800; color: #0a0a0a; }
+    .c5-hero-stat-val.blue { color: #2563eb; }
+    .c5-hero-stat-label { font-size: 11px; color: #a3a3a3; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+    .c5-hero-stat-delta { font-size: 10px; color: #16a34a; margin-top: 4px; }
+
+    /* How it works — editorial layout */
+    .c5-editorial { display: grid; grid-template-columns: 3fr 2fr; gap: 0; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; margin-bottom: 48px; }
+    .c5-ed-left { padding: 32px; border-right: 1px solid #e5e5e5; background: #fff; }
+    .c5-ed-right { padding: 32px; background: #fafafa; }
+    .c5-ed-title { font-size: 18px; font-weight: 800; color: #0a0a0a; margin-bottom: 20px; }
+
+    .c5-step-row { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f5f5f5; }
+    .c5-step-row:last-child { border: none; }
+    .c5-step-num {
+      width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .c5-step-num.s1 { background: #eff6ff; color: #2563eb; }
+    .c5-step-num.s2 { background: #f0fdf4; color: #16a34a; }
+    .c5-step-num.s3 { background: #fefce8; color: #ca8a04; }
+    .c5-step-num.s4 { background: #faf5ff; color: #9333ea; }
+    .c5-step-num.s5 { background: #f1f5f9; color: #475569; }
+    .c5-step-title { font-size: 13px; font-weight: 700; color: #171717; margin-bottom: 2px; }
+    .c5-step-desc { font-size: 12px; color: #737373; line-height: 1.5; }
+    .c5-step-chain { font-size: 10px; color: #a3a3a3; margin-top: 4px; font-family: 'IBM Plex Mono', monospace; }
+
+    .c5-ed-right-title { font-size: 13px; font-weight: 700; color: #171717; margin-bottom: 16px; }
+    .c5-ed-code {
+      font-size: 11px; line-height: 1.8; padding: 16px; border-radius: 8px;
+      background: #171717; color: #a3a3a3; font-family: 'IBM Plex Mono', monospace;
+      overflow-x: auto;
+    }
+    .c5-ed-code .kw { color: #93c5fd; }
+    .c5-ed-code .str { color: #86efac; }
+    .c5-ed-code .fn { color: #fde68a; }
+    .c5-ed-code .cm { color: #525252; }
+    .c5-ed-code .op { color: #e5e5e5; }
+
+    /* Agent table — editorial data table */
+    .c5-table-section { margin-bottom: 48px; }
+    .c5-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .c5-table-title { font-size: 18px; font-weight: 800; color: #0a0a0a; }
+    .c5-table-count { font-size: 12px; color: #a3a3a3; }
+    .c5-table {
+      width: 100%; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden;
+      background: #fff; border-collapse: separate; border-spacing: 0;
+    }
+    .c5-table th {
+      text-align: left; padding: 12px 16px; font-size: 10px; font-weight: 700;
+      color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px;
+      background: #fafafa; border-bottom: 1px solid #e5e5e5;
+    }
+    .c5-table td {
+      padding: 14px 16px; font-size: 13px; color: #171717;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .c5-table tr:last-child td { border: none; }
+    .c5-table .ens { color: #2563eb; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+    .c5-table .chain { font-size: 10px; color: #a3a3a3; font-family: 'IBM Plex Mono', monospace; }
+    .c5-table .status {
+      font-size: 10px; padding: 3px 10px; border-radius: 4px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    .c5-table .status.verified { color: #16a34a; background: #f0fdf4; }
+    .c5-table .status.pending { color: #ca8a04; background: #fefce8; }
+    .c5-table .id-col { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #737373; }
+
+    /* Coverage comparison — editorial style */
+    .c5-comparison { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; }
+    .c5-comp-col { background: #fff; border-right: 1px solid #e5e5e5; }
+    .c5-comp-col:last-child { border-right: none; }
+    .c5-comp-col.feat { background: #eff6ff; }
+    .c5-comp-head {
+      padding: 24px 20px; text-align: center; border-bottom: 1px solid #e5e5e5;
+    }
+    .c5-comp-tier { font-size: 10px; color: #a3a3a3; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 8px; }
+    .c5-comp-col.feat .c5-comp-tier { color: #2563eb; }
+    .c5-comp-price { font-size: 28px; font-weight: 800; color: #0a0a0a; }
+    .c5-comp-price span { font-size: 13px; color: #a3a3a3; font-weight: 400; }
+    .c5-comp-row {
+      padding: 12px 20px; border-bottom: 1px solid #f5f5f5;
+      font-size: 12px; color: #525252; text-align: center;
+    }
+    .c5-comp-row:last-child { border: none; }
+    .c5-comp-row .y { color: #16a34a; font-weight: 700; }
+    .c5-comp-row .n { color: #d4d4d4; }
+    .c5-comp-row .val { font-weight: 700; color: #171717; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .c1-hero, .c2-hero-split, .c3-risk-hero, .c4-panels, .c4-tiers, .c5-hero, .c5-editorial,
+      .c1-agents-grid, .c2-econ-grid, .c3-identity, .c5-comparison { grid-template-columns: 1fr; }
+      .c1-pipeline, .c4-flow-steps, .c2-verify-flow { grid-template-columns: 1fr; }
+      .c2-dash-stats { grid-template-columns: 1fr 1fr; }
+      .c1-h1, .c2-h1, .c3-h1, .c4-h1, .c5-h1 { font-size: 32px; }
+      .c1-cli-box { grid-column: span 1; }
+      .c4-flow-line { display: none; }
+      .c3-calc-body { grid-template-columns: 1fr; }
+      .nav { flex-wrap: wrap; gap: 4px; padding: 10px 8px; }
+      .nav a { font-size: 10px; padding: 5px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="#c1" class="on" onclick="setOn(this)">1 — Phosphor</a>
+  <a href="#c2" onclick="setOn(this)">2 — Deep Water</a>
+  <a href="#c3" onclick="setOn(this)">3 — Ember</a>
+  <a href="#c4" onclick="setOn(this)">4 — Infrared</a>
+  <a href="#c5" onclick="setOn(this)">5 — Paper</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     C1: PHOSPHOR — The cross-chain architecture IS the hero
+═══════════════════════════════════════════════════ -->
+<section class="c1" id="c1">
+  <div class="tag">Concept 1</div>
+  <div class="sec-title" style="font-family:'IBM Plex Mono',monospace;">Phosphor</div>
+  <div class="sec-sub">Acid lime on black. The hero isn't a tagline — it's a live diagram of the cross-chain architecture. Developers see the system, not the marketing.</div>
+
+  <div class="c1-f">
+    <div class="c1-hero">
+      <div>
+        <div class="c1-kicker">Agent Insurance Protocol</div>
+        <h1 class="c1-h1">Your agent runs on Base.<br/>Its identity lives on ENS.<br/><em>We cover the gap.</em></h1>
+        <p class="c1-p">
+          AgentCover bridges the <code>AgentRegistry</code> on Base Sepolia with
+          ENS identity on Ethereum. ENSIP-25 verification proves ownership cross-chain.
+          Coverage settles on-chain. No paperwork.
+        </p>
+        <div class="c1-btns">
+          <button class="c1-btn">Connect Wallet</button>
+          <button class="c1-btn ghost">View Contracts</button>
+        </div>
+      </div>
+
+      <!-- Live architecture diagram -->
+      <div class="c1-arch">
+        <div class="c1-arch-label">Cross-Chain Architecture</div>
+        <div class="c1-chain-row">
+          <div class="c1-chain">
+            <div class="c1-chain-name"><span class="dot blue"></span> Base Sepolia · 84532</div>
+            <div class="c1-chain-val">AgentRegistry</div>
+            <div class="c1-chain-detail" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#3f3f46;word-break:break-all;margin-top:6px;">0x7f3a...8b2c</div>
+            <div class="c1-chain-detail">registerAgent() · setMetadataURI()</div>
+          </div>
+          <div class="c1-chain">
+            <div class="c1-chain-name"><span class="dot lime"></span> Eth Sepolia · 11155111</div>
+            <div class="c1-chain-val">ENS + Resolver</div>
+            <div class="c1-chain-detail" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#3f3f46;word-break:break-all;margin-top:6px;">*.agentcover.eth</div>
+            <div class="c1-chain-detail">setText() · ENSIP-25 records</div>
+          </div>
+        </div>
+        <div class="c1-bridge"></div>
+        <div class="c1-record-box">
+          <div class="c1-record-key">ENSIP-25 TEXT RECORD KEY</div>
+          <div class="c1-record-val">agent-registration[0x00010000030149...][3]</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarding pipeline -->
+    <div class="c1-pipeline">
+      <div class="c1-pipe-step active">
+        <div class="c1-pipe-num">01</div>
+        <div class="c1-pipe-title">Connect</div>
+        <div class="c1-pipe-desc">SIWE auth via injected or Coinbase Wallet</div>
+        <div class="c1-pipe-chain">any chain</div>
+      </div>
+      <div class="c1-pipe-step">
+        <div class="c1-pipe-num">02</div>
+        <div class="c1-pipe-title">Claim ENS</div>
+        <div class="c1-pipe-desc">Register {label}.agentcover.eth subname</div>
+        <div class="c1-pipe-chain">eth sepolia</div>
+      </div>
+      <div class="c1-pipe-step">
+        <div class="c1-pipe-num">03</div>
+        <div class="c1-pipe-title">Register Agent</div>
+        <div class="c1-pipe-desc">On-chain tx to AgentRegistry contract</div>
+        <div class="c1-pipe-chain">base sepolia · 84532</div>
+      </div>
+      <div class="c1-pipe-step">
+        <div class="c1-pipe-num">04</div>
+        <div class="c1-pipe-title">ENSIP-25 Verify</div>
+        <div class="c1-pipe-desc">Set ERC-7930 text record on ENS resolver</div>
+        <div class="c1-pipe-chain">eth sepolia · 11155111</div>
+      </div>
+      <div class="c1-pipe-step">
+        <div class="c1-pipe-num">05</div>
+        <div class="c1-pipe-title">CLI Token</div>
+        <div class="c1-pipe-desc">Generate bearer token for agentcover-cli</div>
+        <div class="c1-pipe-chain">off-chain</div>
+      </div>
+    </div>
+
+    <!-- Agent cards + CLI -->
+    <div class="c1-agents-grid">
+      <div class="c1-agent-card">
+        <div class="c1-agent-head">
+          <div>
+            <div class="c1-agent-name">trading-bot-v2</div>
+            <div class="c1-agent-ens">trader.agentcover.eth</div>
+          </div>
+          <div class="c1-agent-status verified">Verified</div>
+        </div>
+        <div class="c1-agent-meta">
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Agent ID</div><div class="c1-agent-field-val">#3</div></div>
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Registry</div><div class="c1-agent-field-val">Base Sepolia</div></div>
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Coverage</div><div class="c1-agent-field-val">$50,000 USDC</div></div>
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Premium</div><div class="c1-agent-field-val">12.4 USDC/mo</div></div>
+        </div>
+      </div>
+      <div class="c1-agent-card">
+        <div class="c1-agent-head">
+          <div>
+            <div class="c1-agent-name">sentinel-monitor</div>
+            <div class="c1-agent-ens">sentinel.agentcover.eth</div>
+          </div>
+          <div class="c1-agent-status pending">Pending</div>
+        </div>
+        <div class="c1-agent-meta">
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Agent ID</div><div class="c1-agent-field-val">#7</div></div>
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Registry</div><div class="c1-agent-field-val">Base Sepolia</div></div>
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Coverage</div><div class="c1-agent-field-val">—</div></div>
+          <div class="c1-agent-field"><div class="c1-agent-field-label">Premium</div><div class="c1-agent-field-val">—</div></div>
+        </div>
+      </div>
+      <div class="c1-cli-box">
+        <div class="c1-cli-header">
+          <div class="c1-cli-title">Quick Start</div>
+          <div class="c1-cli-copy">copy</div>
+        </div>
+        <div class="c1-cli-line"><span class="out">$</span> <span class="cmd">npm i -g @agentcover/cli</span></div>
+        <div class="c1-cli-line"><span class="out">$</span> <span class="cmd">agentcover setup</span> <span class="flag">--token</span> <span class="cmd">eyJhbG...</span></div>
+        <div class="c1-cli-line"><span class="ok">✓</span> <span class="out">Authenticated as 0x7f3a...8b2c</span></div>
+        <div class="c1-cli-line"><span class="out">$</span> <span class="cmd">agentcover agents</span> <span class="flag">--list</span></div>
+        <div class="c1-cli-line"><span class="out">  #3  trading-bot-v2    trader.agentcover.eth    verified</span></div>
+        <div class="c1-cli-line"><span class="out">  #7  sentinel-monitor  sentinel.agentcover.eth  pending</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     C2: DEEP WATER — The product IS the dashboard
+═══════════════════════════════════════════════════ -->
+<section class="c2" id="c2">
+  <div class="tag">Concept 2</div>
+  <div class="sec-title">Deep Water</div>
+  <div class="sec-sub">Teal + steel on dark navy. The hero is a live dashboard preview — you see the product before you sign up. Trust through transparency.</div>
+
+  <div class="c2-f">
+    <div class="c2-hero-split">
+      <div>
+        <div class="c2-live-dot">Live on Base Sepolia</div>
+        <h1 class="c2-h1">Your agents deserve a <span>safety net</span></h1>
+        <p class="c2-p">On-chain coverage for AI agents. Register on Base, verify with ENS, get insured. Premiums priced by actual risk, not guesswork.</p>
+        <div class="c2-btns">
+          <button class="c2-btn primary">Get Covered</button>
+          <button class="c2-btn secondary">Explore Protocol</button>
+        </div>
+      </div>
+
+      <div class="c2-dash">
+        <div class="c2-dash-bar">
+          <div class="c2-dash-tabs">
+            <div class="c2-dash-tab on">Agents</div>
+            <div class="c2-dash-tab">Coverage</div>
+            <div class="c2-dash-tab">Claims</div>
+          </div>
+          <div class="c2-dash-addr">0x7f3a...8b2c</div>
+        </div>
+        <div class="c2-dash-stats">
+          <div class="c2-dash-stat">
+            <div class="c2-dash-stat-label">Registered Agents</div>
+            <div class="c2-dash-stat-val">3</div>
+          </div>
+          <div class="c2-dash-stat">
+            <div class="c2-dash-stat-label">Verified</div>
+            <div class="c2-dash-stat-val teal">2 / 3</div>
+          </div>
+          <div class="c2-dash-stat">
+            <div class="c2-dash-stat-label">Total Coverage</div>
+            <div class="c2-dash-stat-val">$73.4k</div>
+          </div>
+          <div class="c2-dash-stat">
+            <div class="c2-dash-stat-label">Monthly Premium</div>
+            <div class="c2-dash-stat-val">$28.60</div>
+            <div class="c2-dash-stat-delta">risk-adjusted</div>
+          </div>
+        </div>
+        <div class="c2-dash-agents">
+          <div class="c2-dash-agents-title">Your Fleet</div>
+          <div class="c2-agent-row" style="font-size:10px;color:#334155;border:none;padding:6px 0;">
+            <div>NAME</div><div>ENS</div><div>CHAIN</div><div>STATUS</div><div>ID</div>
+          </div>
+          <div class="c2-agent-row">
+            <div class="c2-ar-name">trading-bot-v2</div>
+            <div class="c2-ar-ens">trader.agentcover.eth</div>
+            <div class="c2-ar-chain">Base 84532</div>
+            <div><span class="c2-ar-badge v">verified</span></div>
+            <div class="c2-ar-id">#3</div>
+          </div>
+          <div class="c2-agent-row">
+            <div class="c2-ar-name">sentinel-monitor</div>
+            <div class="c2-ar-ens">sentinel.agentcover.eth</div>
+            <div class="c2-ar-chain">Base 84532</div>
+            <div><span class="c2-ar-badge v">verified</span></div>
+            <div class="c2-ar-id">#7</div>
+          </div>
+          <div class="c2-agent-row">
+            <div class="c2-ar-name">arb-executor</div>
+            <div class="c2-ar-ens">arb.agentcover.eth</div>
+            <div class="c2-ar-chain">Base 84532</div>
+            <div><span class="c2-ar-badge p">pending</span></div>
+            <div class="c2-ar-id">#12</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification flow -->
+    <div class="c2-verify-section">
+      <div class="c2-verify-title">Cross-Chain Verification</div>
+      <div class="c2-verify-sub">Three steps. Two chains. One cryptographic proof that you own your agent.</div>
+      <div class="c2-verify-flow">
+        <div class="c2-vf-step">
+          <div class="c2-vf-chain"><span class="dot base"></span> Base Sepolia</div>
+          <div class="c2-vf-title">Register on AgentRegistry</div>
+          <div class="c2-vf-desc">Call registerAgent(name, ensName) on Base. Get an agentId back. On-chain identity created.</div>
+          <div class="c2-vf-code">
+            registerAgent(<span style="color:#0ea5e9;">"trading-bot"</span>,<br/>"trader.agentcover.eth")
+            <br/>→ agentId: <span style="color:#0ea5e9;">3</span>
+          </div>
+        </div>
+        <div class="c2-vf-step">
+          <div class="c2-vf-chain"><span class="dot eth"></span> Eth Sepolia</div>
+          <div class="c2-vf-title">Set ENSIP-25 Text Record</div>
+          <div class="c2-vf-desc">On the ENS resolver, set a text record keyed by the ERC-7930 encoded address of the registry + agentId.</div>
+          <div class="c2-vf-code">
+            setText(node,<br/>"agent-registration[<span style="color:#0ea5e9;">0x0001...14a54</span>][3]",<br/>"1")
+          </div>
+        </div>
+        <div class="c2-vf-step">
+          <div class="c2-vf-chain"><span class="dot both"></span> Cross-Chain</div>
+          <div class="c2-vf-title">Verify Ownership</div>
+          <div class="c2-vf-desc">Protocol reads both chains: text record exists on ENS, agent is active on Base, ENS names match, owner matches.</div>
+          <div class="c2-vf-code">
+            verifyEnsip25(<br/>&nbsp;&nbsp;"trader.agentcover.eth",<br/>&nbsp;&nbsp;registryAddr, 3, owner<br/>) → <span style="color:#22c55e;">{ verified: true }</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Economics -->
+    <div class="c2-econ-grid">
+      <div class="c2-econ-card">
+        <div class="c2-econ-card-title">Risk Pool Allocation</div>
+        <div class="c2-pool-row"><div class="c2-pool-color" style="background:#0ea5e9;"></div><div class="c2-pool-name">Smart Contract Exploits</div><div class="c2-pool-val">$890k</div><div class="c2-pool-pct">37%</div></div>
+        <div class="c2-pool-row"><div class="c2-pool-color" style="background:#6366f1;"></div><div class="c2-pool-name">Oracle Manipulation</div><div class="c2-pool-val">$520k</div><div class="c2-pool-pct">22%</div></div>
+        <div class="c2-pool-row"><div class="c2-pool-color" style="background:#22c55e;"></div><div class="c2-pool-name">Slippage Protection</div><div class="c2-pool-val">$430k</div><div class="c2-pool-pct">18%</div></div>
+        <div class="c2-pool-row"><div class="c2-pool-color" style="background:#f59e0b;"></div><div class="c2-pool-name">MEV / Sandwich</div><div class="c2-pool-val">$340k</div><div class="c2-pool-pct">14%</div></div>
+        <div class="c2-pool-row"><div class="c2-pool-color" style="background:#ef4444;"></div><div class="c2-pool-name">Governance Attacks</div><div class="c2-pool-val">$220k</div><div class="c2-pool-pct">9%</div></div>
+      </div>
+      <div class="c2-econ-card">
+        <div class="c2-econ-card-title">Premium Calculator</div>
+        <div class="c2-premium-calc">
+          <div class="c2-premium-row"><span class="label">Coverage Amount</span><span class="val">$50,000</span></div>
+          <div class="c2-premium-row"><span class="label">Agent Risk Score</span><span class="val">B+ (low-medium)</span></div>
+          <div class="c2-premium-row"><span class="label">Agent Type</span><span class="val">DeFi Trading</span></div>
+          <div class="c2-premium-row"><span class="label">Pool Utilization</span><span class="val">73%</span></div>
+          <div class="c2-premium-row"><span class="label">Base Rate</span><span class="val">0.024%/mo</span></div>
+          <div class="c2-premium-row"><span class="label">Risk Adjustment</span><span class="val">×1.03</span></div>
+          <div class="c2-premium-row total"><span class="label">Monthly Premium</span><span class="val">$12.36 USDC</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     C3: EMBER — Economics-first, the risk model IS the pitch
+═══════════════════════════════════════════════════ -->
+<section class="c3" id="c3">
+  <div class="tag">Concept 3</div>
+  <div class="sec-title" style="font-family:'Space Grotesk',sans-serif;">Ember</div>
+  <div class="sec-sub">Warm amber on dark earth. Leads with the economics — risk pools, premium math, coverage tiers. Feels like a serious financial protocol, not a toy.</div>
+
+  <div class="c3-f">
+    <div class="c3-hero-full">
+      <h1 class="c3-h1">Autonomous agents,<br/><em>actuarial precision</em></h1>
+      <p class="c3-hero-p">Risk-priced coverage for on-chain AI agents. Premiums calculated from behavior, not assumptions. Claims settle in blocks, not business days.</p>
+      <div class="c3-btns-center">
+        <button class="c3-btn primary">Launch Protocol</button>
+        <button class="c3-btn ghost">Read the Model →</button>
+      </div>
+    </div>
+
+    <!-- Risk categories — the real product -->
+    <div class="c3-risk-hero">
+      <div class="c3-risk-card">
+        <div class="c3-risk-icon">⚡</div>
+        <div class="c3-risk-title">Smart Contract Risk</div>
+        <div class="c3-risk-desc">Coverage for losses caused by exploits, reentrancy, or logic bugs in contracts your agent interacts with.</div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Pool Size</span><span class="c3-risk-metric-val">$890k</span></div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Loss Ratio</span><span class="c3-risk-metric-val green">2.1%</span></div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Base Premium</span><span class="c3-risk-metric-val amber">0.024%/mo</span></div>
+      </div>
+      <div class="c3-risk-card featured">
+        <div class="c3-risk-icon">📊</div>
+        <div class="c3-risk-title">Oracle Manipulation</div>
+        <div class="c3-risk-desc">Protection when oracle feeds are manipulated causing your agent to execute trades at manipulated prices.</div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Pool Size</span><span class="c3-risk-metric-val">$520k</span></div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Loss Ratio</span><span class="c3-risk-metric-val amber">4.7%</span></div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Base Premium</span><span class="c3-risk-metric-val amber">0.038%/mo</span></div>
+      </div>
+      <div class="c3-risk-card">
+        <div class="c3-risk-icon">🥪</div>
+        <div class="c3-risk-title">MEV Extraction</div>
+        <div class="c3-risk-desc">Covers sandwich attacks, frontrunning, and other MEV extraction that drains value from agent transactions.</div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Pool Size</span><span class="c3-risk-metric-val">$340k</span></div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Loss Ratio</span><span class="c3-risk-metric-val green">1.8%</span></div>
+        <div class="c3-risk-metric"><span class="c3-risk-metric-label">Base Premium</span><span class="c3-risk-metric-val amber">0.019%/mo</span></div>
+      </div>
+    </div>
+
+    <!-- Agent identity: ENS + Registry side-by-side -->
+    <div class="c3-identity">
+      <div class="c3-id-card">
+        <div class="c3-id-title">ENS Identity <span class="chain-badge eth">Eth Sepolia</span></div>
+        <div class="c3-ens-preview">
+          <div class="c3-ens-domain">trader.agentcover.eth</div>
+          <div class="c3-ens-owner">owner: 0x7f3a9c2d1e8b4f6a...8b2c</div>
+          <div class="c3-ens-records">
+            <div class="c3-ens-record"><span class="key">resolver</span><span class="val">0xE996...49b5</span></div>
+            <div class="c3-ens-record"><span class="key">agent-registration[0x0001...][3]</span><span class="val">1</span></div>
+            <div class="c3-ens-record"><span class="key">parent</span><span class="val">agentcover.eth</span></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#57534e;">Subnames claimed via NameWrapper on Eth Sepolia. Text records used for ENSIP-25 cross-chain verification.</div>
+      </div>
+      <div class="c3-id-card">
+        <div class="c3-id-title">Agent Registry <span class="chain-badge base">Base Sepolia</span></div>
+        <div class="c3-registry-preview">
+          <div class="c3-reg-entry">
+            <div class="c3-reg-id">#3</div>
+            <div><div class="c3-reg-name">trading-bot-v2</div><div class="c3-reg-sub">trader.agentcover.eth · $50k coverage</div></div>
+            <div class="c3-reg-status active">active</div>
+          </div>
+          <div class="c3-reg-entry">
+            <div class="c3-reg-id">#7</div>
+            <div><div class="c3-reg-name">sentinel-monitor</div><div class="c3-reg-sub">sentinel.agentcover.eth · $23.4k coverage</div></div>
+            <div class="c3-reg-status active">active</div>
+          </div>
+          <div class="c3-reg-entry">
+            <div class="c3-reg-id">#12</div>
+            <div><div class="c3-reg-name">arb-executor</div><div class="c3-reg-sub">arb.agentcover.eth · pending</div></div>
+            <div class="c3-reg-status" style="color:#f59e0b;background:rgba(245,158,11,.08);">verify</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Premium calculator -->
+    <div class="c3-calc">
+      <div class="c3-calc-header">
+        <div class="c3-calc-title">Premium Calculator</div>
+        <div class="c3-calc-badge">Live Estimate</div>
+      </div>
+      <div class="c3-calc-body">
+        <div class="c3-calc-inputs">
+          <div class="c3-calc-input">
+            <div class="c3-calc-label">Coverage Amount</div>
+            <input class="c3-calc-field" type="text" value="$50,000 USDC" readonly />
+          </div>
+          <div class="c3-calc-input">
+            <div class="c3-calc-label">Agent Type</div>
+            <input class="c3-calc-field" type="text" value="DeFi Trading Bot" readonly />
+          </div>
+          <div class="c3-calc-input">
+            <div class="c3-calc-label">Risk Categories</div>
+            <input class="c3-calc-field" type="text" value="Contract + Oracle + MEV" readonly />
+          </div>
+        </div>
+        <div class="c3-calc-result">
+          <div class="c3-calc-result-row"><span class="l">Base Rate</span><span class="v">0.024%/mo</span></div>
+          <div class="c3-calc-result-row"><span class="l">Risk Multiplier</span><span class="v">×1.12</span></div>
+          <div class="c3-calc-result-row"><span class="l">Pool Utilization Adj.</span><span class="v">×1.03</span></div>
+          <div class="c3-calc-result-row"><span class="l">History Discount</span><span class="v">-8%</span></div>
+          <div class="c3-calc-result-row total"><span class="l">Monthly Premium</span><span class="v">$12.84</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     C4: INFRARED — Onboarding wizard reimagined as spatial flow
+═══════════════════════════════════════════════════ -->
+<section class="c4" id="c4">
+  <div class="tag">Concept 4</div>
+  <div class="sec-title">Infrared</div>
+  <div class="sec-sub">Coral on deep navy. The 5-step onboarding flow is the centerpiece — each step shows the actual chain interaction. Protection duality: danger and safety.</div>
+
+  <div class="c4-f">
+    <div class="c4-hero-center">
+      <h1 class="c4-h1">From wallet connect<br/>to covered in 5 txns</h1>
+      <p class="c4-hero-p">Register your agent on Base, verify identity through ENS, and activate coverage. Each step is an on-chain interaction — transparent and irreversible.</p>
+      <div class="c4-btns-center">
+        <button class="c4-btn primary">Start Onboarding</button>
+        <button class="c4-btn ghost">How It Works</button>
+      </div>
+    </div>
+
+    <!-- Onboarding flow with chain context -->
+    <div class="c4-flow">
+      <div class="c4-flow-line"></div>
+      <div class="c4-flow-steps">
+        <div class="c4-flow-step">
+          <div class="c4-flow-node n1">🔗</div>
+          <div class="c4-flow-label">Connect</div>
+          <div class="c4-flow-desc">Sign-In with Ethereum. JWT session created.</div>
+          <div class="c4-flow-chain-tag">SIWE · any chain</div>
+        </div>
+        <div class="c4-flow-step">
+          <div class="c4-flow-node n2">◆</div>
+          <div class="c4-flow-label">Claim ENS</div>
+          <div class="c4-flow-desc">{label}.agentcover.eth via NameWrapper</div>
+          <div class="c4-flow-chain-tag">Eth Sepolia · 11155111</div>
+        </div>
+        <div class="c4-flow-step">
+          <div class="c4-flow-node n3">⬡</div>
+          <div class="c4-flow-label">Register Agent</div>
+          <div class="c4-flow-desc">registerAgent() + setMetadataURI()</div>
+          <div class="c4-flow-chain-tag">Base Sepolia · 84532</div>
+        </div>
+        <div class="c4-flow-step">
+          <div class="c4-flow-node n4">✦</div>
+          <div class="c4-flow-label">ENSIP-25 Verify</div>
+          <div class="c4-flow-desc">setText() on ENS resolver with ERC-7930 key</div>
+          <div class="c4-flow-chain-tag">Eth Sepolia · 11155111</div>
+        </div>
+        <div class="c4-flow-step">
+          <div class="c4-flow-node n5">▸</div>
+          <div class="c4-flow-label">CLI Setup</div>
+          <div class="c4-flow-desc">Generate bearer token for agentcover-cli</div>
+          <div class="c4-flow-chain-tag">off-chain · JWT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent card + Verification proof side-by-side -->
+    <div class="c4-panels">
+      <div class="c4-panel">
+        <div class="c4-panel-head">
+          <div class="c4-panel-title">Agent Identity</div>
+          <div class="c4-panel-badge coral">Base Sepolia</div>
+        </div>
+        <div class="c4-panel-body">
+          <div class="c4-agent-identity">
+            <div class="c4-agent-avatar">T</div>
+            <div>
+              <div class="c4-agent-primary">trading-bot-v2</div>
+              <div class="c4-agent-ens">trader.agentcover.eth</div>
+              <div class="c4-agent-desc">Automated DeFi trading agent on Uniswap V3</div>
+            </div>
+          </div>
+          <div class="c4-agent-fields">
+            <div class="c4-af"><div class="c4-af-label">Agent ID</div><div class="c4-af-val">#3</div></div>
+            <div class="c4-af"><div class="c4-af-label">Status</div><div class="c4-af-val" style="color:#22c55e;">● Verified</div></div>
+            <div class="c4-af"><div class="c4-af-label">Registry TX</div><div class="c4-af-val mono">0x8a2f...3e91</div></div>
+            <div class="c4-af"><div class="c4-af-label">Metadata URI</div><div class="c4-af-val mono">/api/agents/3/metadata</div></div>
+            <div class="c4-af"><div class="c4-af-label">Coverage</div><div class="c4-af-val">$50,000 USDC</div></div>
+            <div class="c4-af"><div class="c4-af-label">Premium</div><div class="c4-af-val">12.4 USDC/mo</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="c4-panel">
+        <div class="c4-panel-head">
+          <div class="c4-panel-title">ENSIP-25 Verification Proof</div>
+          <div class="c4-panel-badge blue">Eth Sepolia</div>
+        </div>
+        <div class="c4-panel-body">
+          <div class="c4-proof-step">
+            <div class="c4-proof-num">Step 1 · ERC-7930 Encoding</div>
+            <div class="c4-proof-title">Encode registry address as interoperable address</div>
+            <div class="c4-proof-code">
+              version: <span class="hl">0x0001</span> · chainType: <span class="hl">0x0000</span> (EVM)<br/>
+              chainRef: <span class="hl">014a54</span> (84532 = Base Sepolia)<br/>
+              address: <span class="hl">0x7f3a...8b2c</span> (AgentRegistry)
+            </div>
+          </div>
+          <div class="c4-proof-step">
+            <div class="c4-proof-num">Step 2 · Text Record Key</div>
+            <div class="c4-proof-title">Compute ENSIP-25 record key</div>
+            <div class="c4-proof-code">
+              agent-registration[<span class="hl">0x00010000030149...</span>][<span class="hl">3</span>]
+            </div>
+          </div>
+          <div class="c4-proof-step">
+            <div class="c4-proof-num">Step 3 · Cross-Chain Verify</div>
+            <div class="c4-proof-title">Read both chains, confirm match</div>
+            <div class="c4-proof-code">
+              ENS text record: <span class="hl">"1"</span> ✓<br/>
+              Agent active on Base: <span class="hl">true</span> ✓<br/>
+              ENS name matches: <span class="hl">true</span> ✓<br/>
+              Owner matches: <span class="hl">true</span> ✓<br/>
+              → <span style="color:#22c55e;">verified</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coverage tiers with agent-specific risk types -->
+    <div class="c4-tiers">
+      <div class="c4-tier">
+        <div class="c4-tier-name">Starter</div>
+        <div class="c4-tier-price">$49<span>/mo</span></div>
+        <div class="c4-tier-desc">For solo devs. Basic exploit coverage for testing agents.</div>
+        <ul class="c4-tier-list">
+          <li><span class="icon y">✓</span> 3 agents max</li>
+          <li><span class="icon y">✓</span> $10k coverage limit</li>
+          <li><span class="icon y">✓</span> Smart contract exploits</li>
+          <li><span class="icon y">✓</span> ENS subname included</li>
+          <li><span class="icon n">—</span> Oracle manipulation</li>
+          <li><span class="icon n">—</span> MEV protection</li>
+          <li><span class="icon n">—</span> Risk scoring API</li>
+        </ul>
+      </div>
+      <div class="c4-tier feat">
+        <div class="c4-tier-name">Pro</div>
+        <div class="c4-tier-price">$199<span>/mo</span></div>
+        <div class="c4-tier-desc">For teams shipping production agents. Full protection suite.</div>
+        <ul class="c4-tier-list">
+          <li><span class="icon y">✓</span> 25 agents max</li>
+          <li><span class="icon y">✓</span> $100k coverage limit</li>
+          <li><span class="icon y">✓</span> Smart contract exploits</li>
+          <li><span class="icon y">✓</span> Oracle manipulation</li>
+          <li><span class="icon y">✓</span> Slippage protection (&gt;5%)</li>
+          <li><span class="icon y">✓</span> CLI + SDK + risk API</li>
+          <li><span class="icon n">—</span> MEV / governance</li>
+        </ul>
+      </div>
+      <div class="c4-tier">
+        <div class="c4-tier-name">Fleet</div>
+        <div class="c4-tier-price">Custom</div>
+        <div class="c4-tier-desc">For protocols with agent fleets. Dedicated risk pool.</div>
+        <ul class="c4-tier-list">
+          <li><span class="icon y">✓</span> Unlimited agents</li>
+          <li><span class="icon y">✓</span> Custom coverage</li>
+          <li><span class="icon y">✓</span> All risk categories</li>
+          <li><span class="icon y">✓</span> MEV + sandwich</li>
+          <li><span class="icon y">✓</span> Governance attacks</li>
+          <li><span class="icon y">✓</span> Dedicated risk pool</li>
+          <li><span class="icon y">✓</span> Custom integrations</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     C5: PAPER — Light mode, editorial, zero fluff
+═══════════════════════════════════════════════════ -->
+<section class="c5" id="c5">
+  <div class="tag">Concept 5</div>
+  <div class="sec-title">Paper</div>
+  <div class="sec-sub">Light mode, electric blue accent. Editorial density, real data tables, newspaper-style hierarchy. Proves the product doesn't need dark mode to look serious.</div>
+
+  <div class="c5-f">
+    <div class="c5-hero">
+      <div>
+        <h1 class="c5-h1">Insurance for agents that <span>never sleep</span></h1>
+        <p class="c5-hero-p">Your AI agents execute trades, manage positions, and interact with protocols 24/7. AgentCover provides on-chain coverage for when things go wrong — verified through ENS, settled on Base.</p>
+        <div class="c5-btns">
+          <button class="c5-btn primary">Connect Wallet</button>
+          <button class="c5-btn outline">Read Documentation</button>
+        </div>
+      </div>
+      <div class="c5-hero-stats">
+        <div class="c5-hero-stat">
+          <div class="c5-hero-stat-val">1,847</div>
+          <div class="c5-hero-stat-label">Agents Registered</div>
+          <div class="c5-hero-stat-delta">+12% this month</div>
+        </div>
+        <div class="c5-hero-stat">
+          <div class="c5-hero-stat-val blue">$2.4M</div>
+          <div class="c5-hero-stat-label">Total Value Locked</div>
+          <div class="c5-hero-stat-delta">+24% MoM</div>
+        </div>
+        <div class="c5-hero-stat">
+          <div class="c5-hero-stat-val">99.7%</div>
+          <div class="c5-hero-stat-label">Claims Paid</div>
+        </div>
+        <div class="c5-hero-stat">
+          <div class="c5-hero-stat-val blue">&lt;60s</div>
+          <div class="c5-hero-stat-label">Claim Settlement</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editorial: how it works + SDK code -->
+    <div class="c5-editorial">
+      <div class="c5-ed-left">
+        <div class="c5-ed-title">Five steps to coverage</div>
+        <div class="c5-step-row">
+          <div class="c5-step-num s1">1</div>
+          <div>
+            <div class="c5-step-title">Connect Wallet</div>
+            <div class="c5-step-desc">Sign-In with Ethereum via injected provider or Coinbase Wallet. JWT session created server-side.</div>
+            <div class="c5-step-chain">SIWE · any EVM chain</div>
+          </div>
+        </div>
+        <div class="c5-step-row">
+          <div class="c5-step-num s2">2</div>
+          <div>
+            <div class="c5-step-title">Claim ENS Subname</div>
+            <div class="c5-step-desc">Register {label}.agentcover.eth via NameWrapper contract. Your agent gets a human-readable identity.</div>
+            <div class="c5-step-chain">Eth Sepolia · 11155111 · NameWrapper 0x0635...cE8</div>
+          </div>
+        </div>
+        <div class="c5-step-row">
+          <div class="c5-step-num s3">3</div>
+          <div>
+            <div class="c5-step-title">Register Agent On-Chain</div>
+            <div class="c5-step-desc">Call registerAgent(name, ensName) on the AgentRegistry contract. Returns an agentId. Then set ERC-721 style metadata URI.</div>
+            <div class="c5-step-chain">Base Sepolia · 84532 · AgentRegistry</div>
+          </div>
+        </div>
+        <div class="c5-step-row">
+          <div class="c5-step-num s4">4</div>
+          <div>
+            <div class="c5-step-title">ENSIP-25 Cross-Chain Verify</div>
+            <div class="c5-step-desc">Set a text record on the ENS resolver keyed by ERC-7930 encoded registry address + agentId. Protocol reads both chains to verify.</div>
+            <div class="c5-step-chain">Eth Sepolia · Resolver 0xE996...49b5</div>
+          </div>
+        </div>
+        <div class="c5-step-row">
+          <div class="c5-step-num s5">5</div>
+          <div>
+            <div class="c5-step-title">Generate CLI Token</div>
+            <div class="c5-step-desc">Create a bearer token for programmatic access via agentcover-cli. Manage agents from your terminal.</div>
+            <div class="c5-step-chain">off-chain · agentcover setup --token &lt;token&gt;</div>
+          </div>
+        </div>
+      </div>
+      <div class="c5-ed-right">
+        <div class="c5-ed-right-title">SDK Quick Start</div>
+        <div class="c5-ed-code">
+          <span class="cm">// register + verify in one script</span><br/>
+          <span class="kw">import</span> <span class="op">{</span> AgentCover <span class="op">}</span> <span class="kw">from</span> <span class="str">'@agentcover/sdk'</span><br/><br/>
+          <span class="kw">const</span> <span class="op">ac =</span> <span class="kw">new</span> <span class="fn">AgentCover</span><span class="op">({</span><br/>
+          &nbsp;&nbsp;baseSepolia: <span class="str">'https://sepolia.base.org'</span>,<br/>
+          &nbsp;&nbsp;ethSepolia: <span class="str">'https://sepolia.eth.org'</span>,<br/>
+          <span class="op">})</span><br/><br/>
+          <span class="cm">// 1. Claim ENS subname</span><br/>
+          <span class="kw">await</span> ac.<span class="fn">claimENS</span><span class="op">(</span><span class="str">'trader'</span><span class="op">)</span><br/>
+          <span class="cm">// → trader.agentcover.eth</span><br/><br/>
+          <span class="cm">// 2. Register on Base</span><br/>
+          <span class="kw">const</span> <span class="op">{ agentId } =</span> <span class="kw">await</span> ac.<span class="fn">register</span><span class="op">({</span><br/>
+          &nbsp;&nbsp;name: <span class="str">'trading-bot-v2'</span>,<br/>
+          &nbsp;&nbsp;ens: <span class="str">'trader.agentcover.eth'</span>,<br/>
+          <span class="op">})</span><br/><br/>
+          <span class="cm">// 3. Cross-chain verify</span><br/>
+          <span class="kw">await</span> ac.<span class="fn">verify</span><span class="op">(</span>agentId<span class="op">)</span><br/>
+          <span class="cm">// sets ENSIP-25 text record</span><br/><br/>
+          <span class="cm">// 4. Get coverage</span><br/>
+          <span class="kw">await</span> ac.<span class="fn">insure</span><span class="op">({</span><br/>
+          &nbsp;&nbsp;agentId,<br/>
+          &nbsp;&nbsp;coverage: <span class="str">50_000</span>,<br/>
+          &nbsp;&nbsp;risks: <span class="op">[</span><span class="str">'contract'</span>, <span class="str">'oracle'</span><span class="op">]</span>,<br/>
+          <span class="op">})</span><br/>
+          <span class="cm">// → premium: 12.36 USDC/mo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent data table -->
+    <div class="c5-table-section">
+      <div class="c5-table-header">
+        <div class="c5-table-title">Agent Registry</div>
+        <div class="c5-table-count">3 agents · Base Sepolia 84532</div>
+      </div>
+      <table class="c5-table">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>ENS Identity</th><th>Chain</th><th>Verification</th><th>Coverage</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id-col">#3</td>
+            <td><strong>trading-bot-v2</strong></td>
+            <td class="ens">trader.agentcover.eth</td>
+            <td class="chain">Base Sepolia</td>
+            <td><span class="status verified">Verified</span></td>
+            <td>$50,000</td>
+          </tr>
+          <tr>
+            <td class="id-col">#7</td>
+            <td><strong>sentinel-monitor</strong></td>
+            <td class="ens">sentinel.agentcover.eth</td>
+            <td class="chain">Base Sepolia</td>
+            <td><span class="status verified">Verified</span></td>
+            <td>$23,400</td>
+          </tr>
+          <tr>
+            <td class="id-col">#12</td>
+            <td><strong>arb-executor</strong></td>
+            <td class="ens">arb.agentcover.eth</td>
+            <td class="chain">Base Sepolia</td>
+            <td><span class="status pending">Pending</span></td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Coverage comparison -->
+    <div class="c5-comparison">
+      <div class="c5-comp-col">
+        <div class="c5-comp-head">
+          <div class="c5-comp-tier">Starter</div>
+          <div class="c5-comp-price">$49<span>/mo</span></div>
+        </div>
+        <div class="c5-comp-row"><span class="val">3</span> agents</div>
+        <div class="c5-comp-row"><span class="val">$10k</span> max coverage</div>
+        <div class="c5-comp-row">Contract exploits <span class="y">✓</span></div>
+        <div class="c5-comp-row">Oracle manipulation <span class="n">—</span></div>
+        <div class="c5-comp-row">MEV protection <span class="n">—</span></div>
+        <div class="c5-comp-row">Risk scoring API <span class="n">—</span></div>
+        <div class="c5-comp-row">CLI + SDK <span class="y">✓</span></div>
+      </div>
+      <div class="c5-comp-col feat">
+        <div class="c5-comp-head">
+          <div class="c5-comp-tier">Pro</div>
+          <div class="c5-comp-price">$199<span>/mo</span></div>
+        </div>
+        <div class="c5-comp-row"><span class="val">25</span> agents</div>
+        <div class="c5-comp-row"><span class="val">$100k</span> max coverage</div>
+        <div class="c5-comp-row">Contract exploits <span class="y">✓</span></div>
+        <div class="c5-comp-row">Oracle manipulation <span class="y">✓</span></div>
+        <div class="c5-comp-row">MEV protection <span class="n">—</span></div>
+        <div class="c5-comp-row">Risk scoring API <span class="y">✓</span></div>
+        <div class="c5-comp-row">CLI + SDK <span class="y">✓</span></div>
+      </div>
+      <div class="c5-comp-col">
+        <div class="c5-comp-head">
+          <div class="c5-comp-tier">Fleet</div>
+          <div class="c5-comp-price">Custom</div>
+        </div>
+        <div class="c5-comp-row"><span class="val">∞</span> agents</div>
+        <div class="c5-comp-row"><span class="val">Custom</span> coverage</div>
+        <div class="c5-comp-row">Contract exploits <span class="y">✓</span></div>
+        <div class="c5-comp-row">Oracle manipulation <span class="y">✓</span></div>
+        <div class="c5-comp-row">MEV protection <span class="y">✓</span></div>
+        <div class="c5-comp-row">Risk scoring API <span class="y">✓</span></div>
+        <div class="c5-comp-row">CLI + SDK + custom <span class="y">✓</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function setOn(el) {
+    document.querySelectorAll('.nav a').forEach(a => a.classList.remove('on'));
+    el.classList.add('on');
+  }
+  const secs = document.querySelectorAll('section');
+  const links = document.querySelectorAll('.nav a');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    secs.forEach(s => { if (scrollY >= s.offsetTop - 200) cur = s.id; });
+    links.forEach(a => {
+      a.classList.toggle('on', a.getAttribute('href') === '#' + cur);
+    });
+  });
+</script>
+
+</body>
+</html>
