@@ -26,6 +26,7 @@ function parseSessionRecord(doc) {
     ddocId: doc.ddocId,
     uploadedAt: doc.uploadedAt,
     fileverseUrl: doc.link || null,
+    content,
   };
 }
 
@@ -58,6 +59,7 @@ async function uploadUserFile({ sessionId, agentId, ensId, content }) {
     ddocId: fileverse.ddocId,
     uploadedAt: new Date().toISOString(),
     fileverseUrl: fileverse.link || null,
+    doc: fileverse.raw || null,
   };
 }
 
@@ -68,16 +70,6 @@ async function listSessions() {
 async function getSessionById(sessionId) {
   const sessions = await fetchSessionRecords();
   return sessions.find((s) => s.sessionId === sessionId) || null;
-}
-
-async function deleteSessionById(sessionId) {
-  const session = await getSessionById(sessionId);
-  if (!session) {
-    return false;
-  }
-
-  await deleteFileverseDoc(session.ddocId);
-  return true;
 }
 
 async function getSessionDoc(sessionId) {
@@ -96,10 +88,78 @@ async function getSessionDoc(sessionId) {
   };
 }
 
+async function deleteSessionById(sessionId) {
+  const session = await getSessionById(sessionId);
+  if (!session) {
+    return false;
+  }
+
+  await deleteFileverseDoc(session.ddocId);
+  return true;
+}
+
+async function listUsers() {
+  const sessions = await fetchSessionRecords();
+  const map = new Map();
+
+  for (const s of sessions) {
+    const key = s.ensId || "unknown";
+    const existing = map.get(key) || {
+      ensId: s.ensId,
+      totalSessions: 0,
+      latestUploadAt: null,
+      sessionIds: [],
+    };
+
+    existing.totalSessions += 1;
+    existing.sessionIds.push(s.sessionId);
+
+    if (!existing.latestUploadAt || (s.uploadedAt && s.uploadedAt > existing.latestUploadAt)) {
+      existing.latestUploadAt = s.uploadedAt || existing.latestUploadAt;
+    }
+
+    map.set(key, existing);
+  }
+
+  return Array.from(map.values()).sort((a, b) => b.totalSessions - a.totalSessions);
+}
+
+async function getUserDocsByEnsId(ensId) {
+  const sessions = await fetchSessionRecords();
+  const userSessions = sessions.filter((s) => s.ensId === ensId);
+
+  if (!userSessions.length) {
+    return null;
+  }
+
+  const docs = await Promise.all(
+    userSessions.map(async (s) => {
+      const fullDoc = await getFileverseDoc(s.ddocId);
+      return {
+        sessionId: s.sessionId,
+        agentId: s.agentId,
+        ensId: s.ensId,
+        ddocId: s.ddocId,
+        uploadedAt: s.uploadedAt,
+        fileverseUrl: s.fileverseUrl,
+        doc: fullDoc,
+      };
+    })
+  );
+
+  return {
+    ensId,
+    totalDocs: docs.length,
+    docs,
+  };
+}
+
 module.exports = {
   uploadUserFile,
   listSessions,
   getSessionById,
-  deleteSessionById,
   getSessionDoc,
+  deleteSessionById,
+  listUsers,
+  getUserDocsByEnsId,
 };

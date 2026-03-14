@@ -5,7 +5,17 @@ const {
   getSessionById,
   deleteSessionById,
   getSessionDoc,
+  listUsers,
+  getUserDocsByEnsId,
 } = require("../services/userService");
+
+function errorJson(res, err) {
+  return res.status(err.status || 500).json({
+    error: err.message,
+    upstream: err.upstream || null,
+    hint: getConnectionHint(),
+  });
+}
 
 async function upload(req, res) {
   try {
@@ -15,10 +25,7 @@ async function upload(req, res) {
       data: record,
     });
   } catch (err) {
-    res.status(err.status || 500).json({
-      error: err.message,
-      hint: getConnectionHint(),
-    });
+    return errorJson(res, err);
   }
 }
 
@@ -27,10 +34,7 @@ async function getSessions(req, res) {
     const sessions = await listSessions();
     res.json({ total: sessions.length, sessions });
   } catch (err) {
-    res.status(err.status || 500).json({
-      error: err.message,
-      hint: getConnectionHint(),
-    });
+    return errorJson(res, err);
   }
 }
 
@@ -42,10 +46,7 @@ async function getSession(req, res) {
     }
     res.json(session);
   } catch (err) {
-    res.status(err.status || 500).json({
-      error: err.message,
-      hint: getConnectionHint(),
-    });
+    return errorJson(res, err);
   }
 }
 
@@ -54,10 +55,28 @@ async function getDoc(req, res) {
     const payload = await getSessionDoc(req.params.id);
     res.json(payload);
   } catch (err) {
-    res.status(err.status || 500).json({
-      error: err.message,
-      hint: getConnectionHint(),
-    });
+    return errorJson(res, err);
+  }
+}
+
+async function getUsers(req, res) {
+  try {
+    const users = await listUsers();
+    res.json({ total: users.length, users });
+  } catch (err) {
+    return errorJson(res, err);
+  }
+}
+
+async function getUserDocs(req, res) {
+  try {
+    const payload = await getUserDocsByEnsId(req.params.ensId);
+    if (!payload) {
+      return res.status(404).json({ message: "user docs not found" });
+    }
+    res.json(payload);
+  } catch (err) {
+    return errorJson(res, err);
   }
 }
 
@@ -69,10 +88,7 @@ async function deleteSession(req, res) {
     }
     res.json({ message: "session deleted successfully" });
   } catch (err) {
-    res.status(err.status || 500).json({
-      error: err.message,
-      hint: getConnectionHint(),
-    });
+    return errorJson(res, err);
   }
 }
 
@@ -81,5 +97,7 @@ module.exports = {
   getSessions,
   getSession,
   getDoc,
+  getUsers,
+  getUserDocs,
   deleteSession,
 };

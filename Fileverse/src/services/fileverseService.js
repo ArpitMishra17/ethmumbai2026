@@ -1,10 +1,7 @@
 const { FILEVERSE_SERVER_URL, FILEVERSE_API_KEY } = require("../config/env");
 
 function getConnectionHint() {
-  if (FILEVERSE_SERVER_URL.includes("localhost") || FILEVERSE_SERVER_URL.includes("127.0.0.1")) {
-    return "Start local fileverse server: npx @fileverse/api";
-  }
-  return "Check your cloud SERVER_URL and API_KEY configuration.";
+  return "Check your cloud SERVER_URL, API_KEY, and Cloudflare Worker logs for failures.";
 }
 
 function ensureApiKey() {
@@ -13,6 +10,53 @@ function ensureApiKey() {
     err.status = 500;
     throw err;
   }
+}
+
+function cleanText(value = "") {
+  return String(value).replace(/\s+/g, " ").trim();
+}
+
+function parseCloudflareHtmlError(html = "") {
+  if (!html || !/<html/i.test(html)) return null;
+
+  const title = html.match(/<title>(.*?)<\/title>/is)?.[1];
+  const subtitle = html.match(/<h2[^>]*>(.*?)<\/h2>/is)?.[1];
+  const rayId = html.match(/Ray ID:\s*<strong[^>]*>(.*?)<\/strong>/is)?.[1] || html.match(/Ray ID:\s*([^<\n]+)/i)?.[1];
+
+  return {
+    title: cleanText((title || "").replace(/<[^>]+>/g, "")),
+    message: cleanText((subtitle || "").replace(/<[^>]+>/g, "")),
+    rayId: cleanText((rayId || "").replace(/<[^>]+>/g, "")) || null,
+  };
+}
+
+async function safeError(response, fallbackMessage) {
+  const text = await response.text();
+  const cf = parseCloudflareHtmlError(text);
+
+  if (cf) {
+    const err = new Error(cf.message || fallbackMessage);
+    err.status = response.status;
+    err.upstream = {
+      type: "cloudflare_html_error",
+      title: cf.title || null,
+      message: cf.message || null,
+      rayId: cf.rayId,
+      status: response.status,
+      serverUrl: FILEVERSE_SERVER_URL,
+    };
+    throw err;
+  }
+
+  const err = new Error(text || fallbackMessage);
+  err.status = response.status;
+  err.upstream = {
+    type: "upstream_error",
+    status: response.status,
+    serverUrl: FILEVERSE_SERVER_URL,
+    body: text ? text.slice(0, 400) : null,
+  };
+  throw err;
 }
 
 async function uploadToFileverse(title, content) {
@@ -26,16 +70,14 @@ async function uploadToFileverse(title, content) {
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    const err = new Error(text || "failed to create document");
-    err.status = response.status;
-    throw err;
+    await safeError(response, "failed to create document");
   }
 
   const data = await response.json();
   return {
     ddocId: data?.data?.ddocId || data?.ddocId || "",
     link: data?.data?.link || data?.link || "",
+    raw: data,
   };
 }
 
@@ -46,10 +88,7 @@ async function getFileverseDoc(ddocId) {
   const response = await fetch(url, { method: "GET" });
 
   if (!response.ok) {
-    const text = await response.text();
-    const err = new Error(text || "failed to fetch document");
-    err.status = response.status;
-    throw err;
+    await safeError(response, "failed to fetch document");
   }
 
   const data = await response.json();
@@ -84,10 +123,7 @@ async function listFileverseDocs() {
   const response = await fetch(url, { method: "GET" });
 
   if (!response.ok) {
-    const text = await response.text();
-    const err = new Error(text || "failed to list documents");
-    err.status = response.status;
-    throw err;
+    await safeError(response, "failed to list documents");
   }
 
   const payload = await response.json();
@@ -101,10 +137,7 @@ async function deleteFileverseDoc(ddocId) {
   const response = await fetch(url, { method: "DELETE" });
 
   if (!response.ok) {
-    const text = await response.text();
-    const err = new Error(text || "failed to delete document");
-    err.status = response.status;
-    throw err;
+    await safeError(response, "failed to delete document");
   }
 
   return response.json().catch(() => ({ ok: true }));

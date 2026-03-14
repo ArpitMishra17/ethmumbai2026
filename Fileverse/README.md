@@ -15,6 +15,8 @@ Create `.env`:
 API_KEY=your_fileverse_api_key
 SERVER_URL=https://your-fileverse-server-url
 PORT=8000
+CLOUD_ONLY=true
+BASE_URL=http://localhost:8000
 ```
 
 Run:
@@ -23,46 +25,64 @@ Run:
 npm start
 ```
 
-## API Routes
+## Postman Environment
 
-### Health
+Set this variable in Postman:
 
-- `GET /ping`
-- `GET /ping/fileverse`
+- `baseUrl = http://localhost:8000`
 
-### Session Upload
+## API Routes (Postman)
 
-- `POST /upload`
-- `POST /sessions/upload`
+### Save Session
 
-Request body:
-- `sessionId` (required)
-- `agentId` (required)
-- `ensId` (required)
-- `content` (required)
+- `POST {{baseUrl}}/sessions/upload`
+- `POST {{baseUrl}}/upload`
 
-### Session Read
+Body (JSON):
+- `sessionId`
+- `agentId`
+- `ensId`
+- `content`
 
-- `GET /sessions`
-- `GET /users`
+### Fetch All Sessions
 
-Returns sessions resolved from Fileverse docs.
+- `GET {{baseUrl}}/sessions`
 
-- `GET /sessions/:id`
-- `GET /users/:id`
+Returns all sessions (cloud derived).
 
-Returns one session by `sessionId` (resolved from Fileverse docs).
+### Fetch One Session
 
-### Session Document
+- `GET {{baseUrl}}/sessions/:id`
 
-- `GET /sessions/:id/doc`
-- `GET /users/:id/doc`
+Returns single session summary by `sessionId`.
 
-Returns `ddocId`, metadata, and fetched Fileverse doc payload.
+### Fetch One Session Full Doc
 
-### Delete
+- `GET {{baseUrl}}/sessions/:id/doc`
 
-- `DELETE /sessions/:id`
-- `DELETE /users/:id`
+Returns full document JSON for one session.
 
-Deletes the mapped Fileverse document.
+### Fetch All Users (Aggregated by ENS)
+
+- `GET {{baseUrl}}/accounts`
+- `GET {{baseUrl}}/users`
+
+Returns account-level aggregation by `ensId`.
+
+### Fetch Docs for One User Account
+
+- `GET {{baseUrl}}/accounts/:ensId/docs`
+- `GET {{baseUrl}}/users/:ensId/docs`
+
+Returns all docs for a user (`ensId`) with full `doc` payload.
+
+### Delete Session
+
+- `DELETE {{baseUrl}}/sessions/:id`
+
+Deletes mapped doc from cloud.
+
+## Health
+
+- `GET {{baseUrl}}/ping`
+- `GET {{baseUrl}}/ping/fileverse`
