@@ -44,11 +44,11 @@ export default function DashboardPage() {
               {session.address.slice(0, 6)}...{session.address.slice(-4)}
             </div>
           </div>
-          <Link href="/onboarding">
+          {/* <Link href="/onboarding">
             <button className="px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] transition-all cursor-pointer font-mono">
               Add Agent
             </button>
-          </Link>
+          </Link> */}
         </div>
 
         {/* Statistics Overview */}
