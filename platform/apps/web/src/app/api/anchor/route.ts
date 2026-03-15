@@ -12,6 +12,8 @@ type AnchorRequestBody = {
   fileverseRowId?: string | null;
 };
 
+const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -114,8 +116,37 @@ export async function POST(req: NextRequest) {
       where: { sessionId },
     });
 
-    if (existingSession?.baseTxHash) {
-      return NextResponse.json({ txHash: existingSession.baseTxHash });
+    const currentOnChainHash = await publicClient.readContract({
+      address: sessionRegistryAddress,
+      abi: sessionRegistryAbi,
+      functionName: "getSessionHash",
+      args: [sessionId, agentEns, authenticatedWallet],
+    }) as string;
+
+    if (currentOnChainHash !== ZERO_BYTES32 && currentOnChainHash.toLowerCase() === sessionHash.toLowerCase()) {
+      if (!existingSession?.baseTxHash) {
+        await sessionModel.upsert({
+          where: { sessionId },
+          create: {
+            sessionId,
+            sessionHash,
+            fileverseRowId: fileverseRowId ?? null,
+            baseTxHash: "",
+            anchoredAt: new Date(),
+          },
+          update: {
+            sessionHash,
+            fileverseRowId: fileverseRowId ?? null,
+            anchoredAt: new Date(),
+          },
+        });
+      }
+
+      return NextResponse.json({
+        txHash: existingSession?.baseTxHash ?? null,
+        reanchored: false,
+        sessionHash: currentOnChainHash,
+      });
     }
 
     const txHash = await walletClient.writeContract({
@@ -147,7 +178,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ txHash });
+    return NextResponse.json({
+      txHash,
+      reanchored: currentOnChainHash !== ZERO_BYTES32,
+      previousOnChainHash: currentOnChainHash !== ZERO_BYTES32 ? currentOnChainHash : null,
+    });
   } catch (error) {
     console.error("Session anchor error:", error);
     try {
