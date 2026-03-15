@@ -8,8 +8,62 @@ import { normalize } from '@/lib/pipeline/normalize';
 import { sanitize } from '@/lib/pipeline/sanitize';
 import { simplify } from '@/lib/pipeline/simplify';
 import { addHash } from '@/lib/pipeline/addHash';
+import type { HashedSession } from '@/lib/pipeline/types';
 import { getOnChainSessionHash } from './actions';
 import { useAuth } from '@/hooks/use-auth';
+
+type VerificationMetadata = {
+  agentId: string;
+  agentEns: string;
+  walletId: string;
+  userId: string;
+  orgId: string;
+};
+
+function sessionMetadata(session: Pick<HashedSession, 'agentId' | 'agentEns' | 'walletId' | 'userId' | 'orgId'>): VerificationMetadata {
+  return {
+    agentId: String(session.agentId ?? ''),
+    agentEns: String(session.agentEns ?? ''),
+    walletId: String(session.walletId ?? ''),
+    userId: String(session.userId ?? ''),
+    orgId: String(session.orgId ?? ''),
+  };
+}
+
+function diffMetadata(current: VerificationMetadata, canonical: VerificationMetadata): string[] {
+  const labels: Record<keyof VerificationMetadata, string> = {
+    agentId: 'Agent ID',
+    agentEns: 'Agent ENS',
+    walletId: 'Wallet Address',
+    userId: 'User ID',
+    orgId: 'Org ID',
+  };
+
+  return (Object.keys(labels) as Array<keyof VerificationMetadata>)
+    .filter((key) => current[key].trim() !== canonical[key].trim())
+    .map((key) => `${labels[key]}: "${current[key]}" -> "${canonical[key]}"`);
+}
+
+function summarizeSessionDiff(local: Record<string, any>, canonical: Record<string, any>): string[] {
+  const diffs: string[] = [];
+  const keys = ['sessionId', 'workspacePath', 'startedAt', 'endedAt', 'summary', 'tokenEstimate', 'toolCallCount'];
+
+  for (const key of keys) {
+    if (JSON.stringify(local[key]) !== JSON.stringify(canonical[key])) {
+      diffs.push(`${key}: ${JSON.stringify(local[key])} != ${JSON.stringify(canonical[key])}`);
+    }
+  }
+
+  if (JSON.stringify(local.messages) !== JSON.stringify(canonical.messages)) {
+    diffs.push(`messages differ (${local.messages?.length ?? 0} local vs ${canonical.messages?.length ?? 0} canonical)`);
+  }
+
+  if (JSON.stringify(local.toolCalls) !== JSON.stringify(canonical.toolCalls)) {
+    diffs.push(`toolCalls differ (${local.toolCalls?.length ?? 0} local vs ${canonical.toolCalls?.length ?? 0} canonical)`);
+  }
+
+  return diffs.slice(0, 6);
+}
 
 export default function ClaimsPage() {
   const [fileText, setFileText] = useState<string | null>(null);
@@ -28,6 +82,7 @@ export default function ClaimsPage() {
   const [computedHash, setComputedHash] = useState('');
   const [onChainHash, setOnChainHash] = useState('');
   const [sessionIdStr, setSessionIdStr] = useState('');
+  const [debugNotes, setDebugNotes] = useState<string[]>([]);
 
   // Evaluation state
   const [requestedAmount, setRequestedAmount] = useState<string>('');
@@ -60,6 +115,37 @@ export default function ClaimsPage() {
       .catch(err => console.error('Failed to fetch agents:', err));
   }, [session]);
 
+  const buildHashedSession = async (metadata: VerificationMetadata): Promise<HashedSession> => {
+    const parseOptions = {
+      text: fileText || '',
+      fileName: fileName,
+      agentId: metadata.agentId.trim(),
+      agentEns: metadata.agentEns.trim(),
+      walletId: metadata.walletId.trim(),
+      userId: metadata.userId.trim(),
+      orgId: metadata.orgId.trim(),
+    };
+
+    const normalizedSession = toolType === 'claude_code'
+      ? await parseClaudeCodeLogText(parseOptions)
+      : await parseCodexLogText(parseOptions);
+
+    const sanitizedSession = sanitize(normalize(normalizedSession));
+    const simplifiedSession = simplify(sanitizedSession);
+    return addHash(simplifiedSession);
+  };
+
+  const fetchCanonicalSession = async (sessionId: string): Promise<HashedSession | null> => {
+    const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/canonical`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data?.session ?? null;
+  };
+
   const handleSelectAgent = (agent: any) => {
     if (!agent) return;
     setAgentIdInput(String(agent.agentId));
@@ -75,38 +161,55 @@ export default function ClaimsPage() {
 
     setStatus('processing');
     setErrorMsg('');
+    setDebugNotes([]);
 
     try {
-      const parseOptions = {
-        text: fileText,
-        fileName: fileName,
-        agentId: agentIdInput.trim(),
-        agentEns: agentEnsInput.trim(),
-        walletId: walletIdInput.trim(),
-        userId: userIdInput.trim(),
-        orgId: orgIdInput.trim(),
+      const enteredMetadata: VerificationMetadata = {
+        agentId: agentIdInput,
+        agentEns: agentEnsInput,
+        walletId: walletIdInput,
+        userId: userIdInput,
+        orgId: orgIdInput,
       };
 
-      let normalizedSession;
-      if (toolType === 'claude_code') {
-        normalizedSession = await parseClaudeCodeLogText(parseOptions);
-      } else {
-        normalizedSession = await parseCodexLogText(parseOptions);
-      }
+      const initialSession = await buildHashedSession(enteredMetadata);
+      const canonicalSession = await fetchCanonicalSession(initialSession.sessionId);
 
-      const sanitizedSession = sanitize(normalize(normalizedSession));
-      const simplifiedSession = simplify(sanitizedSession);
-      const hashedSession = await addHash(simplifiedSession);
+      let hashedSession = initialSession;
+      const notes: string[] = [];
+
+      if (canonicalSession) {
+        const canonicalMetadata = sessionMetadata(canonicalSession);
+        const metadataChanges = diffMetadata(enteredMetadata, canonicalMetadata);
+
+        if (metadataChanges.length > 0) {
+          hashedSession = await buildHashedSession(canonicalMetadata);
+          notes.push('Used canonical anchored metadata from Fileverse for verification.');
+          notes.push(...metadataChanges);
+
+          setAgentIdInput(canonicalMetadata.agentId);
+          setAgentEnsInput(canonicalMetadata.agentEns);
+          setWalletIdInput(canonicalMetadata.walletId);
+          setUserIdInput(canonicalMetadata.userId);
+          setOrgIdInput(canonicalMetadata.orgId);
+        }
+
+        if (hashedSession.contentHash !== canonicalSession.contentHash) {
+          notes.push('Uploaded log still reconstructs a different hash than the canonical stored session.');
+          notes.push(...summarizeSessionDiff(hashedSession, canonicalSession));
+        }
+      }
 
       setComputedHash(hashedSession.contentHash);
       setSessionIdStr(hashedSession.sessionId);
       setNormalizedSessionObj(hashedSession);
-      setClaimTextStr(JSON.stringify(simplifiedSession));
+      setClaimTextStr(JSON.stringify(hashedSession));
+      setDebugNotes(notes);
 
       const actualOnChainHash = await getOnChainSessionHash(
         hashedSession.sessionId,
-        agentEnsInput.trim(),
-        walletIdInput.trim()
+        hashedSession.agentEns,
+        hashedSession.walletId
       );
       console.log(actualOnChainHash);
       if (!actualOnChainHash) {
@@ -402,6 +505,17 @@ export default function ClaimsPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {debugNotes.length > 0 && (
+              <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-6 space-y-3">
+                <h3 className="text-[18px] font-bold text-white font-heading">Verification Notes</h3>
+                <div className="space-y-2 font-mono text-[13px] text-[#d4d4d8]">
+                  {debugNotes.map((note, idx) => (
+                    <div key={idx} className="break-words">{note}</div>
+                  ))}
                 </div>
               </div>
             )}
