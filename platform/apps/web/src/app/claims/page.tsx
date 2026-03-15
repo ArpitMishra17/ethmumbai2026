@@ -18,6 +18,7 @@ type VerificationMetadata = {
   walletId: string;
   userId: string;
   orgId: string;
+  parserFileName?: string;
 };
 
 function sessionMetadata(session: Pick<HashedSession, 'agentId' | 'agentEns' | 'walletId' | 'userId' | 'orgId'>): VerificationMetadata {
@@ -31,7 +32,7 @@ function sessionMetadata(session: Pick<HashedSession, 'agentId' | 'agentEns' | '
 }
 
 function diffMetadata(current: VerificationMetadata, canonical: VerificationMetadata): string[] {
-  const labels: Record<keyof VerificationMetadata, string> = {
+  const labels: Record<'agentId' | 'agentEns' | 'walletId' | 'userId' | 'orgId', string> = {
     agentId: 'Agent ID',
     agentEns: 'Agent ENS',
     walletId: 'Wallet Address',
@@ -39,7 +40,7 @@ function diffMetadata(current: VerificationMetadata, canonical: VerificationMeta
     orgId: 'Org ID',
   };
 
-  return (Object.keys(labels) as Array<keyof VerificationMetadata>)
+  return (Object.keys(labels) as Array<keyof typeof labels>)
     .filter((key) => current[key].trim() !== canonical[key].trim())
     .map((key) => `${labels[key]}: "${current[key]}" -> "${canonical[key]}"`);
 }
@@ -116,9 +117,9 @@ export default function ClaimsPage() {
   }, [session]);
 
   const buildHashedSession = async (metadata: VerificationMetadata): Promise<HashedSession> => {
-    const parseOptions = {
+      const parseOptions = {
       text: fileText || '',
-      fileName: fileName,
+      fileName: metadata.parserFileName?.trim() || fileName,
       agentId: metadata.agentId.trim(),
       agentEns: metadata.agentEns.trim(),
       walletId: metadata.walletId.trim(),
@@ -170,6 +171,7 @@ export default function ClaimsPage() {
         walletId: walletIdInput,
         userId: userIdInput,
         orgId: orgIdInput,
+        parserFileName: fileName,
       };
 
       const initialSession = await buildHashedSession(enteredMetadata);
@@ -183,7 +185,10 @@ export default function ClaimsPage() {
         const metadataChanges = diffMetadata(enteredMetadata, canonicalMetadata);
 
         if (metadataChanges.length > 0) {
-          hashedSession = await buildHashedSession(canonicalMetadata);
+          hashedSession = await buildHashedSession({
+            ...canonicalMetadata,
+            parserFileName: String(canonicalSession.workspacePath ?? fileName),
+          });
           notes.push('Used canonical anchored metadata from Fileverse for verification.');
           notes.push(...metadataChanges);
 
@@ -192,6 +197,14 @@ export default function ClaimsPage() {
           setWalletIdInput(canonicalMetadata.walletId);
           setUserIdInput(canonicalMetadata.userId);
           setOrgIdInput(canonicalMetadata.orgId);
+        }
+
+        if (String(canonicalSession.workspacePath ?? '').trim() && String(canonicalSession.workspacePath).trim() !== fileName.trim()) {
+          hashedSession = await buildHashedSession({
+            ...sessionMetadata(canonicalSession),
+            parserFileName: String(canonicalSession.workspacePath),
+          });
+          notes.push(`Used canonical original filename/workspacePath for hashing: "${canonicalSession.workspacePath}"`);
         }
 
         if (hashedSession.contentHash !== canonicalSession.contentHash) {
