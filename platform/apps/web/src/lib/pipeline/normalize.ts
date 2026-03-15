@@ -11,10 +11,6 @@ export function normalize(session: NormalizedSession): NormalizedSession {
     // Ensure dates are valid ISO strings
     startedAt: toISO(session.startedAt),
     endedAt:   toISO(session.endedAt),
-    // Standardize IDs to lowercase for cross-platform hash parity
-    walletId: (session.walletId || '').toLowerCase(),
-    orgId:    (session.orgId || '').toLowerCase(),
-    userId:   (session.userId || '').toLowerCase(),
     // Trim whitespace from string arrays
     filesChanged:  session.filesChanged.map((f) => f.trim()).filter(Boolean),
     shellCommands: session.shellCommands.map((c) => c.trim()).filter(Boolean),
