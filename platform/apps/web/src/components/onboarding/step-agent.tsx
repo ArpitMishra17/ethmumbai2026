@@ -82,6 +82,10 @@ export function StepAgent({ ensName, onComplete }: StepAgentProps) {
       const agentIdNum = Number(agentId);
       const metadataUri = `${window.location.origin}/api/agents/${agentIdNum}/metadata`;
 
+      // Wait a few seconds to let RPC nodes perfectly sync the state of the first transaction.
+      // Otherwise `setMetadataURI` reverts with 'Not agent owner' because the node thinks the agent doesn't exist yet.
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       const metaHash = await setMetadataURI(agentId, metadataUri);
       setMetadataTxHash(metaHash);
       setStatus("confirming_metadata");

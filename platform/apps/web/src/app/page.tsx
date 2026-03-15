@@ -10,22 +10,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#050505] font-mono">
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#050505]/85 border-b border-[rgba(255,255,255,0.06)]">
-        <div className="max-w-[1140px] mx-auto px-5 h-14 flex items-center justify-between">
-          <span className="text-base font-bold text-white font-heading tracking-tight">
-            AgentCover
-          </span>
-          <div className="flex items-center gap-4">
-            {session && (
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">Dashboard</Button>
-              </Link>
-            )}
-            <ConnectWallet />
-          </div>
-        </div>
-      </nav>
+
 
       <section className="max-w-[1140px] mx-auto px-5 pt-28 pb-20">
         {/* Hero — 2 col grid */}

@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { ConnectWallet } from "@/components/connect-wallet";
 import { AgentList } from "@/components/dashboard/agent-list";
 import { CliTokenGenerator } from "@/components/dashboard/cli-token-generator";
+import { ClaimList } from "@/components/dashboard/claim-list";
+import { StatsCards } from "@/components/dashboard/stats-cards";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -31,23 +33,8 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#050505] font-mono">
-      {/* Nav */}
-      <nav className="border-b border-[rgba(255,255,255,0.06)] bg-[#050505]/85 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-[1140px] mx-auto px-5 h-14 flex items-center justify-between">
-          <Link href="/" className="text-base font-bold text-white font-heading tracking-tight">
-            AgentCover
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/claims" className="text-[14px] text-[#d4d4d8] hover:text-white transition-colors">
-              Verify Claims
-            </Link>
-            <ConnectWallet />
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-[1140px] mx-auto px-5 pt-10 pb-20">
-        {/* Header */}
+        {/* Header Section */}
         <div className="flex items-center justify-between mb-10">
           <div>
             <div className="text-[14px] text-[#b5f542] tracking-[2px] uppercase font-semibold mb-2">
@@ -64,21 +51,38 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Agents section */}
-        <div className="mb-8">
-          <div className="text-[14px] text-[#d4d4d8] tracking-[2px] uppercase mb-4">
-            Your Agents
-          </div>
-          <AgentList />
-        </div>
+        {/* Statistics Overview */}
+        <StatsCards />
 
-        {/* CLI section */}
-        <div>
-          <div className="text-[14px] text-[#d4d4d8] tracking-[2px] uppercase mb-4">
-            Tools
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* Main Column */}
+          <div className="lg:col-span-2 space-y-12">
+            {/* Agents Section */}
+            <div>
+              <div className="text-[14px] text-[#d4d4d8] tracking-[2px] uppercase mb-4">
+                Your Agents
+              </div>
+              <AgentList />
+            </div>
+
+            {/* Claims History Section */}
+            <div>
+              <div className="text-[14px] text-[#d4d4d8] tracking-[2px] uppercase mb-4">
+                Recent AI Claim Verdicts
+              </div>
+              <ClaimList walletAddress={session.address} />
+            </div>
           </div>
-          <div className="max-w-md">
-            <CliTokenGenerator />
+
+          {/* Sidebar Column */}
+          <div className="space-y-12">
+            {/* CLI Section */}
+            <div>
+              <div className="text-[14px] text-[#d4d4d8] tracking-[2px] uppercase mb-4">
+                Developer Tools
+              </div>
+              <CliTokenGenerator />
+            </div>
           </div>
         </div>
       </div>

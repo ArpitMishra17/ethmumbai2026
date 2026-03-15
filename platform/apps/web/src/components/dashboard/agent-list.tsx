@@ -64,21 +64,27 @@ export function AgentList() {
             </div>
 
             {/* Meta grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px]">Agent ID</div>
+                <div className="text-[11px] text-[#525252] uppercase tracking-[1px]">Performance</div>
+                <div className={`text-[15px] font-bold ${(agent as any).stats?.trustScore > 90 ? 'text-[#b5f542]' : 'text-yellow-500'}`}>
+                  {(agent as any).stats?.trustScore || 100}% Trust
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] text-[#525252] uppercase tracking-[1px]">Claims/Payout</div>
+                <div className="text-[15px] text-white font-bold">
+                  {(agent as any).stats?.totalClaims || 0} / ${(agent as any).stats?.totalPayout?.toLocaleString() || 0}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] text-[#525252] uppercase tracking-[1px]">Agent ID</div>
                 <div className="text-[14px] text-[#d4d4d8] mt-0.5">#{agent.agentId}</div>
               </div>
               <div>
-                <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px]">Registry</div>
+                <div className="text-[11px] text-[#525252] uppercase tracking-[1px]">Registry</div>
                 <div className="text-[14px] text-[#d4d4d8] mt-0.5">Base Sepolia</div>
               </div>
-              {agent.description && (
-                <div className="col-span-2">
-                  <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px]">Description</div>
-                  <div className="text-[14px] text-[#d4d4d8] mt-0.5">{agent.description}</div>
-                </div>
-              )}
             </div>
           </div>
         );

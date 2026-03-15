@@ -1,4 +1,20 @@
-import "dotenv/config";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+import { config as dotenvConfig } from "dotenv";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const envPath = resolve(__dirname, "..", ".env");
+console.log(`[AiEvalConfig] Loading .env from: ${envPath}`);
+const result = dotenvConfig({ path: envPath });
+
+if (result.error) {
+  console.warn(`[AiEvalConfig] Warning: Failed to load .env file at ${envPath}:`, result.error.message);
+} else {
+  console.log(`[AiEvalConfig] Successfully loaded .env from ${envPath}`);
+}
+
+const key = process.env.GROQ_API_KEY ?? "";
+console.log(`[AiEvalConfig] GROQ_API_KEY loaded: ${key ? (key.slice(0, 8) + "...") : "MISSING"}`);
 
 export const config = {
   llm: {

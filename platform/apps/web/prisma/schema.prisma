@@ -84,3 +84,18 @@ model Session {
   anchoredAt     DateTime?
   createdAt      DateTime @default(now())
 }
+
+model Claim {
+  id              String   @id @default(cuid())
+  sessionId       String
+  agentId         String
+  agentEns        String
+  walletAddress   String
+  requestedAmount Float
+  payoutAmount    Float
+  decision        String
+  reason          String
+  evidence        String   // JSON stringified evidence citations
+  status          String   @default("submitted") // submitted | paid | rejected
+  createdAt       DateTime @default(now())
+}

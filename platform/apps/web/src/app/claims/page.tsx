@@ -9,6 +9,7 @@ import { sanitize } from '@/lib/pipeline/sanitize';
 import { simplify } from '@/lib/pipeline/simplify';
 import { addHash } from '@/lib/pipeline/addHash';
 import { getOnChainSessionHash } from './actions';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function ClaimsPage() {
   const [fileText, setFileText] = useState<string | null>(null);
@@ -27,6 +28,43 @@ export default function ClaimsPage() {
   const [computedHash, setComputedHash] = useState('');
   const [onChainHash, setOnChainHash] = useState('');
   const [sessionIdStr, setSessionIdStr] = useState('');
+
+  // Evaluation state
+  const [requestedAmount, setRequestedAmount] = useState<string>('');
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [evalResult, setEvalResult] = useState<any>(null);
+  const [normalizedSessionObj, setNormalizedSessionObj] = useState<any>(null);
+  const [claimTextStr, setClaimTextStr] = useState('');
+
+  // Auto-population state
+  const { session } = useAuth();
+  const [registeredAgents, setRegisteredAgents] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (session) {
+      if (session.userId) setUserIdInput(session.userId);
+      if (session.address) {
+        setWalletIdInput(session.address);
+        setOrgIdInput(session.address); // Org ID is same as wallet address
+      }
+    }
+
+    // Fetch registered agents
+    fetch('/api/agents')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.agents) {
+          setRegisteredAgents(data.agents);
+        }
+      })
+      .catch(err => console.error('Failed to fetch agents:', err));
+  }, [session]);
+
+  const handleSelectAgent = (agent: any) => {
+    if (!agent) return;
+    setAgentIdInput(String(agent.agentId));
+    setAgentEnsInput(agent.ensName || '');
+  };
 
   const handleVerify = async () => {
     if (!fileText || !fileName || !agentIdInput || !agentEnsInput || !walletIdInput || !userIdInput || !orgIdInput) {
@@ -62,6 +100,8 @@ export default function ClaimsPage() {
 
       setComputedHash(hashedSession.contentHash);
       setSessionIdStr(hashedSession.sessionId);
+      setNormalizedSessionObj(hashedSession);
+      setClaimTextStr(JSON.stringify(simplifiedSession));
 
       const actualOnChainHash = await getOnChainSessionHash(
         hashedSession.sessionId,
@@ -93,21 +133,47 @@ export default function ClaimsPage() {
     }
   };
 
+  const handleEvaluate = async () => {
+    if (!requestedAmount || isNaN(Number(requestedAmount))) {
+      setErrorMsg('Please enter a valid requested payout amount.');
+      return;
+    }
+
+    setIsEvaluating(true);
+    setErrorMsg('');
+    setEvalResult(null);
+
+    try {
+      const res = await fetch('/api/claims/evaluate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session: normalizedSessionObj,
+          claimText: claimTextStr,
+          requestedAmount: Number(requestedAmount),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Evaluation failed');
+      }
+
+      setEvalResult(data);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || 'An error occurred during evaluation');
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
   const inputClass = "w-full h-10 rounded border border-[#1a1a1a] bg-[#0d0d0d] px-4 text-[14px] text-[#e4e4e7] font-mono placeholder:text-[#d4d4d8] focus:outline-none focus:ring-1 focus:ring-[#b5f542] focus:border-[rgba(181,245,66,0.15)] transition-colors";
 
   return (
     <main className="min-h-screen bg-[#050505] font-mono">
-      {/* Nav */}
-      <nav className="border-b border-[rgba(255,255,255,0.06)] bg-[#050505]/85 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-[1140px] mx-auto px-5 h-14 flex items-center justify-between">
-          <Link href="/" className="text-base font-bold text-white font-heading tracking-tight">
-            AgentCover
-          </Link>
-          <Link href="/dashboard" className="text-[14px] text-[#d4d4d8] hover:text-white transition-colors">
-            Dashboard
-          </Link>
-        </div>
-      </nav>
 
       <div className="max-w-2xl mx-auto px-5 py-12">
         <div className="text-center mb-10">
@@ -123,6 +189,24 @@ export default function ClaimsPage() {
         </div>
 
         <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-6 space-y-5">
+          {/* Quick Select */}
+          {registeredAgents.length > 0 && (
+            <div>
+              <div className="text-[12px] text-[#b5f542] uppercase tracking-[1px] mb-2 font-semibold">Quick Select: Your Registered Agents</div>
+              <div className="flex flex-wrap gap-2">
+                {registeredAgents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    onClick={() => handleSelectAgent(agent)}
+                    className="px-3 py-1.5 rounded border border-[rgba(181,245,66,0.2)] bg-[rgba(181,245,66,0.05)] text-[12px] text-[#b5f542] hover:bg-[rgba(181,245,66,0.1)] transition-colors font-mono"
+                  >
+                    {agent.name} ({agent.ensName || `#${agent.agentId}`})
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Tool type */}
           <div>
             <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px] mb-2">Tool Type</div>
@@ -148,6 +232,22 @@ export default function ClaimsPage() {
                   setFileName(selectedFile.name);
                   const text = await selectedFile.text();
                   setFileText(text);
+
+                  // Extract metadata from the first few lines of jsonl
+                  const lines = text.split('\n');
+                  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+                    try {
+                      const line = JSON.parse(lines[i]);
+                      if (line.agentId) setAgentIdInput(line.agentId);
+                      if (line.agentEns) setAgentEnsInput(line.agentEns);
+                      if (line.walletId) setWalletIdInput(line.walletId);
+                      if (line.userId) setUserIdInput(line.userId);
+                      if (line.orgId) setOrgIdInput(line.orgId);
+                      if (line.tool) setToolType(line.tool === 'claude_code' || line.tool === 'codex' ? line.tool : 'claude_code');
+                    } catch (e) {
+                      // skip invalid json lines
+                    }
+                  }
                 } else {
                   setFileName('');
                   setFileText(null);
@@ -204,33 +304,107 @@ export default function ClaimsPage() {
 
         {/* Results */}
         {(status === 'verified' || status === 'tampered') && (
-          <div className={`mt-6 p-6 rounded-md border ${
-            status === 'verified'
-              ? 'bg-[rgba(181,245,66,0.04)] border-[rgba(181,245,66,0.15)]'
-              : 'bg-[rgba(239,68,68,0.04)] border-[rgba(239,68,68,0.15)]'
-          }`}>
-            <h2 className={`text-[18px] font-bold mb-4 font-heading ${
-              status === 'verified' ? 'text-[#b5f542]' : 'text-[#ef4444]'
+          <div className="space-y-6">
+            <div className={`mt-6 p-6 rounded-md border ${
+              status === 'verified'
+                ? 'bg-[rgba(181,245,66,0.04)] border-[rgba(181,245,66,0.15)]'
+                : 'bg-[rgba(239,68,68,0.04)] border-[rgba(239,68,68,0.15)]'
             }`}>
-              {status === 'verified' ? '✓ VERIFIED — Authentic Log' : '✗ TAMPERED — Log altered'}
-            </h2>
+              <h2 className={`text-[18px] font-bold mb-4 font-heading ${
+                status === 'verified' ? 'text-[#b5f542]' : 'text-[#ef4444]'
+              }`}>
+                {status === 'verified' ? '✓ VERIFIED — Authentic Log' : '✗ TAMPERED — Log altered'}
+              </h2>
 
-            <div className="space-y-3 font-mono text-[14px]">
-              <div className="grid grid-cols-3 gap-4 text-[#d4d4d8]">
-                <span className="col-span-1 uppercase tracking-[1px]">Session ID</span>
-                <span className="col-span-2 text-[#e4e4e7] truncate" title={sessionIdStr}>{sessionIdStr}</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 text-[#d4d4d8]">
-                <span className="col-span-1 uppercase tracking-[1px]">Your Hash</span>
-                <span className="col-span-2 text-[#e4e4e7] truncate" title={computedHash.startsWith('0x') ? computedHash : `0x${computedHash}`}>
-                  {computedHash.startsWith('0x') ? computedHash : `0x${computedHash}`}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 text-[#d4d4d8]">
-                <span className="col-span-1 uppercase tracking-[1px]">On-Chain Hash</span>
-                <span className="col-span-2 text-[#e4e4e7] truncate" title={onChainHash}>{onChainHash}</span>
+              <div className="space-y-3 font-mono text-[14px]">
+                <div className="grid grid-cols-3 gap-4 text-[#d4d4d8]">
+                  <span className="col-span-1 uppercase tracking-[1px]">Session ID</span>
+                  <span className="col-span-2 text-[#e4e4e7] truncate" title={sessionIdStr}>{sessionIdStr}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-[#d4d4d8]">
+                  <span className="col-span-1 uppercase tracking-[1px]">Your Hash</span>
+                  <span className="col-span-2 text-[#e4e4e7] truncate" title={computedHash.startsWith('0x') ? computedHash : `0x${computedHash}`}>
+                    {computedHash.startsWith('0x') ? computedHash : `0x${computedHash}`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-[#d4d4d8]">
+                  <span className="col-span-1 uppercase tracking-[1px]">On-Chain Hash</span>
+                  <span className="col-span-2 text-[#e4e4e7] truncate" title={onChainHash}>{onChainHash}</span>
+                </div>
               </div>
             </div>
+
+            {status === 'verified' && !evalResult && (
+              <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-6 space-y-5">
+                <div>
+                  <h3 className="text-[18px] font-bold text-white font-heading mb-1">Evaluate Claim with AI</h3>
+                  <p className="text-[14px] text-[#d4d4d8]">Review this authenticated session log for warranty clause violations.</p>
+                </div>
+
+                <div>
+                  <div className="text-[14px] text-[#d4d4d8] uppercase tracking-[1px] mb-2">Requested Payout Amount</div>
+                  <input
+                    type="number"
+                    value={requestedAmount}
+                    onChange={e => setRequestedAmount(e.target.value)}
+                    placeholder="e.g. 5000"
+                    className={inputClass}
+                  />
+                  <p className="text-[11px] text-[#525252] mt-2 italic">Claim Text is automatically extracted from the authenticated session.</p>
+                </div>
+
+                <button
+                  onClick={handleEvaluate}
+                  disabled={isEvaluating}
+                  className="w-full px-[22px] py-[11px] text-[14px] font-semibold rounded border border-[#b5f542] text-black bg-[#b5f542] hover:bg-[#c8fc5a] disabled:bg-[#0a0a0a] disabled:text-[#d4d4d8] disabled:border-[#1a1a1a] transition-all cursor-pointer font-mono"
+                >
+                  {isEvaluating ? 'AI Evaluator working...' : 'Evaluate Claim Integrity'}
+                </button>
+              </div>
+            )}
+
+            {evalResult && (
+              <div className="border border-[#1a1a1a] rounded-md bg-[#0a0a0a] p-6 space-y-6">
+                <div className="flex items-center justify-between border-b border-[#1a1a1a] pb-4">
+                  <h3 className="text-[20px] font-bold text-white font-heading uppercase tracking-[1px]">AI Verdict Dashboard</h3>
+                  <div className={`px-3 py-1 rounded text-[12px] font-bold border uppercase ${
+                    evalResult.decision.decision === 'approve' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
+                    evalResult.decision.decision === 'reject' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
+                    'bg-yellow-500/10 border-yellow-500/30 text-yellow-500'
+                  }`}>
+                    {evalResult.decision.decision}
+                  </div>
+                </div>
+
+                <div className="space-y-4 font-mono text-[14px]">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[#d4d4d8] uppercase">Recommended Payout</span>
+                    <span className="text-white text-[18px] font-bold">${evalResult.decision.recommendedPayout}</span>
+                  </div>
+
+                  <div>
+                    <div className="text-[#d4d4d8] uppercase mb-2">Verdict Reason</div>
+                    <div className="bg-[#050505] p-4 rounded border border-[#1a1a1a] text-[#e4e4e7] leading-relaxed">
+                      {evalResult.decision.reason}
+                    </div>
+                  </div>
+
+                  {evalResult.evaluatorOutput.evidence && evalResult.evaluatorOutput.evidence.length > 0 && (
+                    <div>
+                      <div className="text-[#d4d4d8] uppercase mb-3">Key Evidence Citations</div>
+                      <div className="space-y-3">
+                        {evalResult.evaluatorOutput.evidence.map((ev: any, i: number) => (
+                          <div key={i} className="bg-[#0d0d0d] p-3 rounded border border-[#1a1a1a] border-l-[#b5f542] border-l-2">
+                            <p className="text-[12px] text-[#525252] mb-1 italic">...{ev.excerpt}...</p>
+                            <p className="text-[13px] text-[#d4d4d8]">{ev.relevance}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node bin/agentcover.ts",
+    "anchor-showcase": "ts-node scripts/anchor_malicious_log.ts",
     "clean": "rimraf dist"
   },
   "keywords": [

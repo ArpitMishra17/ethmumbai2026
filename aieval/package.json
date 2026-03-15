@@ -6,8 +6,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs = require('fs'); const path = require('path'); const copyDir = (src, dest) => { if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true }); fs.readdirSync(src).forEach(file => { const s = path.join(src, file); const d = path.join(dest, file); if (fs.lstatSync(s).isDirectory()) copyDir(s, d); else fs.copyFileSync(s, d); }); }; copyDir('src/clauses', 'dist/clauses'); copyDir('src/fixtures', 'dist/fixtures');\"",
     "dev": "tsx src/index.ts",
+    "server": "tsx src/server.ts",
     "eval": "tsx src/run.ts",
     "evaluate": "tsx src/cli.ts",
     "test": "vitest run",
@@ -15,11 +16,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "groq-sdk": "^0.37.0",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",

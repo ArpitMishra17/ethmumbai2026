@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { Header } from "@/components/layout/header";
 
 export const metadata: Metadata = {
   title: "AgentCover — On-Chain Insurance for AI Agents",
@@ -14,8 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body>
-        <Providers>{children}</Providers>
+      <body className="pt-14">
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   );
